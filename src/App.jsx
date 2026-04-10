@@ -17,6 +17,8 @@ import { usePhotoUpload } from "./hooks/usePhotoUpload";
 import { useBadges } from "./hooks/useBadges";
 import { useChallenges } from "./hooks/useChallenges";
 import { useNotifications } from "./hooks/useNotifications";
+import { useOfflineCache } from "./hooks/useOfflineCache";
+import { searchCache } from "./lib/searchCache";
 import { supabase } from "./lib/supabase";
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -299,6 +301,146 @@ function MapView({ studios, visitedIds, onSelect, userCoords }) {
   );
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   QUICK LOG MODAL — one-tap class logging from home screen FAB
+══════════════════════════════════════════════════════════════════════════ */
+function QuickLogModal({ open, onClose, prefillStudio, recentLogs, showToast, onClassLogged, detectedCity }) {
+  const { C } = useTheme();
+  const [studioName, setStudioName]   = useState("");
+  const [classType, setClassType]     = useState("Reformer");
+  const [rating, setRating]           = useState(5);
+  const [saving, setSaving]           = useState(false);
+  const [done, setDone]               = useState(false);
+
+  // Pre-fill studio from GPS detection or most recent log
+  useEffect(() => {
+    if (!open) return;
+    if (prefillStudio?.name) {
+      setStudioName(prefillStudio.name);
+    } else if (recentLogs?.length > 0) {
+      const last = recentLogs[0];
+      setStudioName(last.studio || last.studio_name_manual || "");
+      setClassType(last.type || last.class_type || "Reformer");
+    } else {
+      setStudioName("");
+    }
+    setRating(5);
+    setDone(false);
+  }, [open, prefillStudio, recentLogs]);
+
+  const handleSave = async () => {
+    if (!studioName.trim()) { showToast("Add a studio name first"); return; }
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const today = new Date().toISOString().slice(0, 10);
+      const now   = new Date().toTimeString().slice(0, 5);
+      const payload = {
+        user_id:            user.id,
+        studio_name_manual: studioName.trim(),
+        google_place_id:    prefillStudio?.google_place_id || prefillStudio?.id?.startsWith?.("Ch") ? (prefillStudio.google_place_id || prefillStudio.id) : null,
+        date:               today,
+        start_time:         now,
+        duration_minutes:   55,
+        city:               prefillStudio?.city || detectedCity || "Unknown",
+        country:            prefillStudio?.country || "Unknown",
+        class_type:         classType,
+        rating,
+        photos:             [],
+        is_new_studio:      false,
+        is_travel_class:    false,
+        source:             "quick_log",
+        visibility:         "private",
+      };
+      const { error } = await supabase.from("class_logs").insert(payload);
+      if (error) throw error;
+      setDone(true);
+      showToast("Logged! ✦");
+      if (onClassLogged) onClassLogged();
+      setTimeout(() => { onClose(); setDone(false); }, 1400);
+    } catch (e) {
+      showToast("Error: " + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div onClick={onClose} style={{
+        position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)",
+        backdropFilter: "blur(4px)", zIndex: 900,
+      }} />
+
+      {/* Sheet */}
+      <div style={{
+        position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
+        width: "100%", maxWidth: 420, background: C.surface,
+        borderRadius: "24px 24px 0 0", padding: "20px 24px 40px",
+        zIndex: 901, boxShadow: "0 -8px 40px rgba(0,0,0,0.4)",
+        animation: "fadeUp 0.22s ease",
+      }}>
+        {/* Handle */}
+        <div style={{ width: 36, height: 4, background: C.surfaceEl, borderRadius: 100, margin: "0 auto 18px" }} />
+
+        {done ? (
+          <div style={{ textAlign: "center", padding: "24px 0" }}>
+            <div style={{ fontSize: 52, marginBottom: 10 }}>✦</div>
+            <p style={{ fontFamily: FD, fontSize: 22, fontWeight: 700, color: C.textPri }}>Logged.</p>
+          </div>
+        ) : (
+          <>
+            <p style={{ fontFamily: FD, fontSize: 22, fontWeight: 700, color: C.textPri, margin: "0 0 4px" }}>⚡ Quick Log</p>
+            <p style={{ fontSize: 12, color: C.textSec, margin: "0 0 20px" }}>Log a class in seconds</p>
+
+            {/* Studio */}
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: C.textTer, textTransform: "uppercase", margin: "0 0 6px" }}>Studio</p>
+            <Inp
+              placeholder="Studio name…"
+              value={studioName}
+              onChange={setStudioName}
+              style={{ marginBottom: 16 }}
+            />
+
+            {/* Class type chips */}
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: C.textTer, textTransform: "uppercase", margin: "0 0 8px" }}>Class type</p>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 18 }}>
+              {["Reformer", "Mat", "Tower", "Private", "Hot Pilates", "Stretch"].map(t => (
+                <button key={t} onClick={() => setClassType(t)} style={{
+                  background: classType === t ? C.accent : "transparent",
+                  color: classType === t ? "#fff" : C.textSec,
+                  border: `1px solid ${classType === t ? C.accent : C.border}`,
+                  borderRadius: 100, padding: "6px 14px", fontSize: 12, fontWeight: 600,
+                  cursor: "pointer", fontFamily: FB, transition: "all 0.15s",
+                }}>{t}</button>
+              ))}
+            </div>
+
+            {/* Star rating */}
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: C.textTer, textTransform: "uppercase", margin: "0 0 8px" }}>Rating</p>
+            <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
+              {[1, 2, 3, 4, 5].map(n => (
+                <button key={n} onClick={() => setRating(n)} style={{
+                  flex: 1, background: n <= rating ? C.accentDim : "transparent",
+                  border: `1px solid ${n <= rating ? C.accent : C.border}`,
+                  borderRadius: 10, padding: "10px 0", fontSize: 22,
+                  color: n <= rating ? C.accent : C.textTer,
+                  cursor: "pointer", transition: "all 0.12s",
+                }}>★</button>
+              ))}
+            </div>
+
+            <Btn full label={saving ? "Saving…" : "Log it ✦"} onClick={handleSave} loading={saving} style={{ justifyContent: "center", fontSize: 16, padding: "16px" }} />
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
 /* ── SmartClassPrompt — asks "did you attend?" if no class logged today ──── */
 function SmartClassPrompt({ logs, setTab, setLogPrefill, C }) {
   const [dismissed, setDismissed] = useState(false);
@@ -554,7 +696,7 @@ function NearbyStudios({ userCoords, onSelectStudio, setSelectedStudio, showToas
 /* ══════════════════════════════════════════════════════════════════════════
    HOME
 ══════════════════════════════════════════════════════════════════════════ */
-function HomeScreen({ logs, setTab, setLogPrefill, challenges, user, userProfile, detectedCity, userCoords, gpsDetected, gpsScanning, gpsDismiss, hkConnected, hkConnect, hkSyncing, showToast, setSelectedStudio }) {
+function HomeScreen({ logs, setTab, setLogPrefill, challenges, user, userProfile, detectedCity, userCoords, gpsDetected, gpsScanning, gpsDismiss, hkConnected, hkConnect, hkSyncing, showToast, setSelectedStudio, onQuickLog }) {
   const { C } = useTheme();
   const stats = getStats(logs);
   const [gIdx] = useState(() => Math.floor(Math.random() * GREETINGS.length));
@@ -677,7 +819,27 @@ function HomeScreen({ logs, setTab, setLogPrefill, challenges, user, userProfile
 
       {/* Nearby — uses real Google Places API based on GPS coords */}
       <NearbyStudios userCoords={userCoords} onSelectStudio={(s) => { if (s) { setSelectedStudio && setSelectedStudio(s); } else { setTab("explore"); } }} showToast={showToast} C={C} />
-      <div style={{ height: 20 }} />
+      <div style={{ height: 88 }} />
+
+      {/* ── Floating Quick Log FAB ── */}
+      {onQuickLog && (
+        <button onClick={onQuickLog} style={{
+          position: "fixed", bottom: 90, right: "calc(50% - 196px)",
+          background: C.accent, color: "#fff",
+          border: "none", borderRadius: 28,
+          padding: "12px 20px", fontSize: 13, fontWeight: 700, fontFamily: FB,
+          cursor: "pointer", zIndex: 80, letterSpacing: 0.3,
+          boxShadow: `0 4px 20px rgba(232,113,74,0.55)`,
+          display: "flex", alignItems: "center", gap: 7,
+          transition: "transform 0.15s, box-shadow 0.15s",
+          animation: "fadeUp 0.3s ease",
+        }}
+          onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(232,113,74,0.65)"; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(232,113,74,0.55)"; }}
+        >
+          <span style={{ fontSize: 16 }}>⚡</span> Quick Log
+        </button>
+      )}
     </div>
   );
 }
@@ -705,6 +867,11 @@ function ExploreScreen({ logs, savedStudios, toggleSave, setSelectedStudio, comm
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     if (!query || query.length < 2) { setPlacesResults([]); return; }
     searchTimerRef.current = setTimeout(async () => {
+      // ── Check cache first (1hr TTL) ──────────────────────────────────────
+      const cacheKey = `explore:${query.toLowerCase().trim()}`;
+      const cached = searchCache.get(cacheKey);
+      if (cached) { setPlacesResults(cached); return; }
+
       setSearching(true);
       try {
         const url = `/api/places-search?query=${encodeURIComponent(query)}`;
@@ -713,6 +880,7 @@ function ExploreScreen({ logs, savedStudios, toggleSave, setSelectedStudio, comm
         const json = await res.json();
         if (json.studios && json.studios.length > 0) {
           setPlacesResults(json.studios);
+          searchCache.set(cacheKey, json.studios); // cache the results
         } else {
           // Fallback: search Supabase DB
           const { data } = await supabase
@@ -721,7 +889,7 @@ function ExploreScreen({ logs, savedStudios, toggleSave, setSelectedStudio, comm
             .or(`name.ilike.%${query}%,city.ilike.%${query}%`)
             .limit(10);
           if (data && data.length > 0) {
-            setPlacesResults(data.map(ds => ({
+            const mapped = data.map(ds => ({
               id: ds.id, name: ds.name, address: ds.address || "",
               city: ds.city || "", country: ds.country || "",
               rating: ds.avg_rating || 0, reviews: ds.review_count || 0,
@@ -729,7 +897,9 @@ function ExploreScreen({ logs, savedStudios, toggleSave, setSelectedStudio, comm
               lat: ds.latitude, lng: ds.longitude,
               verified: ds.is_verified || false, hero: ds.hero_emoji || "🪷",
               vibe: "", website: ds.website || "", phone: ds.phone || "",
-            })));
+            }));
+            setPlacesResults(mapped);
+            searchCache.set(cacheKey, mapped);
           } else {
             setPlacesResults([]);
           }
@@ -1243,6 +1413,36 @@ function StudioDetail({ studio, logs, onBack, savedStudios, toggleSave, setTab, 
         </div>
 
         {tab === "about" && <div>
+          {/* Opening Hours */}
+          {(s.opening_hours?.weekday_text?.length > 0 || details?.opening_hours?.weekday_text?.length > 0) && (() => {
+            const hours = s.opening_hours || details?.opening_hours;
+            const isOpenNow = hours?.open_now;
+            return (
+              <div style={{ marginBottom: 18 }}>
+                <SL>Opening hours</SL>
+                <div style={{ background: C.surfaceHi, borderRadius: 14, padding: "12px 14px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: isOpenNow === true ? C.green : isOpenNow === false ? "#E05050" : C.textTer, flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, fontWeight: 700, color: isOpenNow === true ? C.green : isOpenNow === false ? "#E05050" : C.textSec }}>
+                      {isOpenNow === true ? "Open now" : isOpenNow === false ? "Closed now" : "Hours"}
+                    </span>
+                  </div>
+                  {hours.weekday_text.map((line, i) => {
+                    const [day, ...rest] = line.split(": ");
+                    const today = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()];
+                    const isToday = day?.startsWith(today);
+                    return (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: i < hours.weekday_text.length - 1 ? `1px solid ${C.border}` : "none" }}>
+                        <span style={{ fontSize: 12, fontWeight: isToday ? 700 : 500, color: isToday ? C.textPri : C.textSec }}>{day}</span>
+                        <span style={{ fontSize: 12, fontWeight: isToday ? 700 : 400, color: isToday ? C.accent : C.textSec }}>{rest.join(": ") || "—"}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
           <SL>Why people love it</SL>
           {ct.map(({ tag, count }) => (
             <div key={tag} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
@@ -1355,6 +1555,7 @@ function LogScreen({ logs, setLogs, prefill, setPrefill, hkConnected, hkConnect,
       file,
       previewUrl: URL.createObjectURL(file),
       uploaded: false,
+      progress: 0,
       url: null,
       error: null,
       id: `${Date.now()}-${Math.random()}`,
@@ -1387,6 +1588,11 @@ function LogScreen({ logs, setLogs, prefill, setPrefill, hkConnected, hkConnect,
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     if (!query || query.length < 2) { setSR([]); return; }
     searchTimerRef.current = setTimeout(async () => {
+      // ── Cache check ──────────────────────────────────────────────────────
+      const cacheKey = `log:${query.toLowerCase().trim()}`;
+      const cached = searchCache.get(cacheKey);
+      if (cached) { setSR(cached); return; }
+
       setSearching(true);
       try {
         // Call Netlify function — real Google Places search
@@ -1394,6 +1600,7 @@ function LogScreen({ logs, setLogs, prefill, setPrefill, hkConnected, hkConnect,
         const json = await res.json();
         if (json.studios && json.studios.length > 0) {
           setSR(json.studios);
+          searchCache.set(cacheKey, json.studios);
         } else {
           // Fallback: filter local seed data
           const local = STUDIOS_SEED.filter(s =>
@@ -1428,15 +1635,23 @@ function LogScreen({ logs, setLogs, prefill, setPrefill, hkConnected, hkConnect,
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Step 1: Upload all photos to Supabase Storage
+      // Step 1: Upload all photos to Supabase Storage with progress simulation
       const uploadedUrls = [];
       for (const p of photos) {
+        // Animate progress 0 → 80% while uploading
+        let prog = 0;
+        const ticker = setInterval(() => {
+          prog = Math.min(prog + 12, 80);
+          setPhotos(prev => prev.map(x => x.id === p.id ? { ...x, progress: prog } : x));
+        }, 150);
         try {
           const url = await uploadPhoto(p.file, "class");
+          clearInterval(ticker);
           uploadedUrls.push(url);
-          setPhotos(prev => prev.map(x => x.id === p.id ? { ...x, uploaded: true, url } : x));
+          setPhotos(prev => prev.map(x => x.id === p.id ? { ...x, uploaded: true, url, progress: 100 } : x));
         } catch (err) {
-          setPhotos(prev => prev.map(x => x.id === p.id ? { ...x, error: err.message } : x));
+          clearInterval(ticker);
+          setPhotos(prev => prev.map(x => x.id === p.id ? { ...x, error: err.message, progress: 0 } : x));
           showToast(`Photo upload failed: ${err.message}`);
           // Continue — don't block the log save for a failed photo
         }
@@ -1616,27 +1831,36 @@ function LogScreen({ logs, setLogs, prefill, setPrefill, hkConnected, hkConnect,
           onChange={handleFileSelect}
         />
 
-        {/* Thumbnail grid */}
+        {/* Thumbnail grid with progress bars */}
         {photos.length > 0 && (
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
             {photos.map(p => (
-              <div key={p.id} style={{ position: "relative", width: 72, height: 72 }}>
+              <div key={p.id} style={{ position: "relative", width: 72 }}>
                 <img
                   src={p.previewUrl}
                   alt="preview"
                   style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 10,
                     border: `1.5px solid ${p.error ? "rgba(220,80,60,0.6)" : p.uploaded ? C.green : C.border}`,
-                    opacity: photoUploading ? 0.7 : 1 }}
+                    opacity: p.progress > 0 && p.progress < 100 ? 0.7 : 1,
+                    display: "block",
+                  }}
                 />
-                {/* Upload status overlay */}
+                {/* Progress bar */}
+                {p.progress > 0 && p.progress < 100 && !p.error && (
+                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 4, background: "rgba(0,0,0,0.3)", borderRadius: "0 0 10px 10px", overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${p.progress}%`, background: C.accent, borderRadius: "0 0 10px 10px", transition: "width 0.15s ease" }} />
+                  </div>
+                )}
+                {/* Error overlay */}
                 {p.error && (
                   <div style={{ position: "absolute", inset: 0, background: "rgba(220,80,60,0.3)", borderRadius: 10,
                     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>⚠️</div>
                 )}
+                {/* Uploaded check */}
                 {p.uploaded && !p.error && (
                   <div style={{ position: "absolute", bottom: 3, right: 3, background: C.green,
-                    borderRadius: "50%", width: 16, height: 16, display: "flex", alignItems: "center",
-                    justifyContent: "center", fontSize: 9, color: "#fff", fontWeight: 700 }}>✓</div>
+                    borderRadius: "50%", width: 18, height: 18, display: "flex", alignItems: "center",
+                    justifyContent: "center", fontSize: 10, color: "#fff", fontWeight: 700 }}>✓</div>
                 )}
                 {/* Delete button */}
                 <button
@@ -2162,6 +2386,13 @@ export default function App({ user }) {
   const [logs, setLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(false);
   const [savedStudios, setSavedStudios] = useState([]);
+
+  // Offline support
+  const { isOnline, cacheLogs, getCachedLogs } = useOfflineCache();
+
+  // Quick Log modal state
+  const [quickLogOpen, setQuickLogOpen] = useState(false);
+
   // Push notifications
   const notifications = useNotifications();
 
@@ -2303,29 +2534,44 @@ export default function App({ user }) {
     // if user is undefined, wait — still loading
   }, [user, fetchProfile]);
 
-  // Fetch logs from Supabase
+  // Fetch logs from Supabase (with offline fallback to localStorage cache)
   useEffect(() => {
     if (!user?.id) { setLogsLoading(false); return; }
+
+    // Immediately show cached logs while fetching (avoids empty flash)
+    const cached = getCachedLogs();
+    if (cached && cached.length > 0) setLogs(cached);
+
+    if (!isOnline) {
+      // Offline — cached logs already set above
+      setLogsLoading(false);
+      return;
+    }
+
     setLogsLoading(true);
     supabase.from("class_logs").select("*").eq("user_id", user.id).order("date", { ascending: false }).order("start_time", { ascending: false })
       .then(({ data }) => {
-        if (data) setLogs(data.map(l => {
-          const studioMatch = STUDIOS_SEED.find(s => s.id === l.studio_id);
-          return {
-            ...l,
-            studioId: l.studio_id,
-            studio: studioMatch?.name || l.studio_name_manual || "Unknown Studio",
-            type: l.class_type,
-            duration: l.duration_minutes,
-            time: l.start_time,
-            photos: Array.isArray(l.photos) ? l.photos : [],
-            isTravel: l.is_travel_class,
-            isNew: l.is_new_studio,
-          };
-        }));
+        if (data) {
+          const mapped = data.map(l => {
+            const studioMatch = STUDIOS_SEED.find(s => s.id === l.studio_id);
+            return {
+              ...l,
+              studioId: l.studio_id,
+              studio: studioMatch?.name || l.studio_name_manual || "Unknown Studio",
+              type: l.class_type,
+              duration: l.duration_minutes,
+              time: l.start_time,
+              photos: Array.isArray(l.photos) ? l.photos : [],
+              isTravel: l.is_travel_class,
+              isNew: l.is_new_studio,
+            };
+          });
+          setLogs(mapped);
+          cacheLogs(mapped); // persist for offline use
+        }
       })
       .finally(() => setLogsLoading(false));
-  }, [user]);
+  }, [user, isOnline, getCachedLogs, cacheLogs]);
 
   // Fetch saved studios
   useEffect(() => {
@@ -2535,7 +2781,7 @@ export default function App({ user }) {
     if (selectedUser) return <PublicProfileScreen user={selectedUser} onBack={() => setSelectedUser(null)} setCommunityUsers={setCommunityUsers} />;
     if (selectedStudio) return <StudioDetail studio={selectedStudio} logs={logs} onBack={() => setSelectedStudio(null)} savedStudios={savedStudios} toggleSave={toggleSave} setTab={handleSetTab} setLogPrefill={setLogPrefill} showToast={showToast} />;
     switch (tab) {
-      case "home": return <HomeScreen {...sharedProps} setTab={handleSetTab} setLogPrefill={setLogPrefill} gpsDetected={gpsDetected} gpsScanning={gpsScanning} gpsDismiss={() => { setGpsDetected(null); setGpsDismissed(true); }} setSelectedStudio={setSelectedStudio} />;
+      case "home": return <HomeScreen {...sharedProps} setTab={handleSetTab} setLogPrefill={setLogPrefill} gpsDetected={gpsDetected} gpsScanning={gpsScanning} gpsDismiss={() => { setGpsDetected(null); setGpsDismissed(true); }} setSelectedStudio={setSelectedStudio} onQuickLog={() => setQuickLogOpen(true)} />;
       case "explore": return <ExploreScreen {...sharedProps} setSelectedStudio={setSelectedStudio} setSelectedUser={setSelectedUser} userCoords={userCoords} detectedCity={detectedCity} />;
       case "log": return <LogScreen logs={logs} setLogs={setLogs} prefill={logPrefill} setPrefill={setLogPrefill} hkConnected={hkConnected} hkConnect={hkConnect} hkSyncing={hkSyncing} hkWorkouts={hkWorkouts} showToast={showToast} detectedCity={detectedCity} onClassLogged={onClassLogged} />;
       case "passport": return <PassportScreen logs={logs} />;
@@ -2547,10 +2793,38 @@ export default function App({ user }) {
   return (
     <div style={{ width: "100%", maxWidth: 420, margin: "0 auto", minHeight: "100vh", background: C.bg, fontFamily: FB, position: "relative", display: "flex", flexDirection: "column" }}>
       <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}`}</style>
-      <div ref={screenRef} style={{ flex: 1, overflowY: "auto", overflowX: "hidden", paddingBottom: 80 }}>
+
+      {/* ── Offline banner ── */}
+      {!isOnline && (
+        <div style={{
+          position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)",
+          width: "100%", maxWidth: 420, background: "#2A2008",
+          borderBottom: "1px solid rgba(200,160,60,0.4)",
+          padding: "8px 20px", zIndex: 200,
+          display: "flex", alignItems: "center", gap: 8,
+        }}>
+          <span style={{ fontSize: 13 }}>📵</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: "#C8A040", fontFamily: FB }}>
+            You're offline — showing cached data
+          </span>
+        </div>
+      )}
+
+      <div ref={screenRef} style={{ flex: 1, overflowY: "auto", overflowX: "hidden", paddingBottom: 80, paddingTop: isOnline ? 0 : 36 }}>
         {renderScreen()}
       </div>
       <Toast msg={toast} onClose={() => setToast("")} />
+
+      {/* ── Quick Log Modal ── */}
+      <QuickLogModal
+        open={quickLogOpen}
+        onClose={() => setQuickLogOpen(false)}
+        prefillStudio={gpsDetected}
+        recentLogs={logs}
+        showToast={showToast}
+        onClassLogged={onClassLogged}
+        detectedCity={detectedCity}
+      />
       <nav style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 420, background: C.navBg, backdropFilter: "blur(24px)", borderTop: `1px solid ${C.border}`, display: "flex", padding: "6px 0 18px", zIndex: 100 }}>
         {NAV.map(item => {
           const isLog = item.id === "log";

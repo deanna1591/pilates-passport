@@ -203,6 +203,13 @@ function mapDetail(r, placeId, photoUrls = []) {
     google_maps_url: r.url || "",
     distance: "",
     fromGoogle: true,
+    opening_hours: r.opening_hours
+      ? {
+          open_now: r.opening_hours.open_now ?? null,
+          weekday_text: r.opening_hours.weekday_text || [],
+          periods: r.opening_hours.periods || [],
+        }
+      : null,
   }
 }
 
