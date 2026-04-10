@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — Pilates Passport</title>
+  <link rel="icon" href="/favicon.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #FAF8F6;
+      color: #1E1410;
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #A06CD5; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .top-bar {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(250,248,246,0.97);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(60,40,20,0.10);
+      padding: 16px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, #A06CD5, #FF6B6B);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .logo-name { font-size: 16px; font-weight: 800; color: #1E1410; }
+    .back-btn {
+      font-size: 13px; font-weight: 700; color: #A06CD5;
+      background: rgba(160,108,213,0.12); border: 1px solid rgba(160,108,213,0.25);
+      border-radius: 100px; padding: 7px 16px; cursor: pointer; text-decoration: none;
+      transition: all 0.15s;
+    }
+    .back-btn:hover { background: rgba(160,108,213,0.22); text-decoration: none; }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(123,53,193,0.08), rgba(232,113,74,0.05));
+      border-bottom: 1px solid rgba(60,40,20,0.10);
+      padding: 56px 24px 40px;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(160,108,213,0.18); color: #A06CD5;
+      border: 1px solid rgba(160,108,213,0.3);
+      border-radius: 100px; padding: 6px 16px;
+      font-size: 11px; font-weight: 800; letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 16px;
+    }
+    .hero h1 { font-size: 36px; font-weight: 800; color: #1E1410; margin-bottom: 10px; }
+    .hero p { font-size: 14px; color: #8A7A6A; }
+
+    .container { max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    .toc {
+      background: #FFFFFF; border: 1px solid rgba(60,40,20,0.10);
+      border-radius: 18px; padding: 24px; margin-bottom: 40px;
+    }
+    .toc h3 { font-size: 13px; font-weight: 800; color: #8A7A6A; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; }
+    .toc ol { padding-left: 20px; }
+    .toc li { margin-bottom: 6px; }
+    .toc a { color: #A06CD5; font-size: 14px; font-weight: 500; }
+
+    section { margin-bottom: 44px; }
+    h2 {
+      font-size: 22px; font-weight: 800; color: #1E1410;
+      margin-bottom: 16px; padding-bottom: 10px;
+      border-bottom: 1px solid rgba(60,40,20,0.10);
+    }
+    h3 { font-size: 16px; font-weight: 700; color: #1E1410; margin: 20px 0 10px; }
+    p { color: #5A4A3A; margin-bottom: 12px; }
+
+    .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: 14px; border: 1px solid rgba(60,40,20,0.10); }
+    table { width: 100%; border-collapse: collapse; min-width: 400px; }
+    th {
+      background: #F0EDE8; color: #8A7A6A;
+      font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 12px 16px; text-align: left;
+    }
+    td { padding: 12px 16px; font-size: 14px; color: #6A5A4A; border-top: 1px solid rgba(60,40,20,0.08); }
+    tr:hover td { background: rgba(60,40,20,0.03); }
+
+    ul { padding-left: 20px; margin-bottom: 12px; }
+    li { color: #5A4A3A; margin-bottom: 6px; font-size: 14px; }
+
+    .highlight {
+      background: rgba(123,53,193,0.07); border: 1px solid rgba(160,108,213,0.2);
+      border-radius: 14px; padding: 18px 20px; margin: 16px 0;
+    }
+    .highlight strong { color: #A06CD5; }
+
+    .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 12px; margin-top: 16px; }
+    .contact-card {
+      background: #FFFFFF; border: 1px solid rgba(60,40,20,0.10);
+      border-radius: 14px; padding: 16px;
+    }
+    .contact-card .label { font-size: 11px; color: #8A7A6A; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .contact-card .value { font-size: 14px; color: #7B35C1; font-weight: 600; }
+
+    footer {
+      background: #F0EDE8; border-top: 1px solid rgba(60,40,20,0.10);
+      padding: 28px 24px; text-align: center;
+    }
+    footer p { font-size: 13px; color: #9A8A7A; }
+    footer a { color: #A06CD5; }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <a href="/" class="logo">
+      <div class="logo-icon">🪷</div>
+      <span class="logo-name">Pilates Passport</span>
+    </a>
+    <a href="/" class="back-btn">← Back to App</a>
+  </div>
+
+  <div class="hero">
+    <div class="hero-badge">Legal</div>
+    <h1>Privacy Policy</h1>
+    <p>Effective Date: April 9, 2026 &nbsp;·&nbsp; Last Updated: April 9, 2026</p>
+  </div>
+
+  <div class="container">
+
+    <div class="toc">
+      <h3>Table of Contents</h3>
+      <ol>
+        <li><a href="#intro">Introduction</a></li>
+        <li><a href="#collect">Information We Collect</a></li>
+        <li><a href="#use">How We Use Your Information</a></li>
+        <li><a href="#share">How We Share Your Information</a></li>
+        <li><a href="#rights">Your Rights and Choices</a></li>
+        <li><a href="#location">Location Data</a></li>
+        <li><a href="#healthkit">Apple HealthKit</a></li>
+        <li><a href="#children">Children's Privacy</a></li>
+        <li><a href="#security">Data Security</a></li>
+        <li><a href="#international">International Transfers</a></li>
+        <li><a href="#changes">Changes to This Policy</a></li>
+        <li><a href="#contact">Contact Us</a></li>
+        <li><a href="#ccpa">California Rights (CCPA)</a></li>
+        <li><a href="#gdpr">European Rights (GDPR)</a></li>
+      </ol>
+    </div>
+
+    <section id="intro">
+      <h2>1. Introduction</h2>
+      <p>Pilates Passport ("we", "our", "us", or the "App") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application and website.</p>
+      <p>Please read this Privacy Policy carefully. By using Pilates Passport, you consent to the practices described in this policy.</p>
+    </section>
+
+    <section id="collect">
+      <h2>2. Information We Collect</h2>
+      <h3>2.1 Information You Provide Directly</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Category</th><th>Examples</th><th>Legal Basis</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Account Information</strong></td><td>Name, email address, password, profile photo</td><td>Contract performance</td></tr>
+            <tr><td><strong>User Content</strong></td><td>Class logs, photos, reviews, ratings, notes</td><td>Consent / Contract</td></tr>
+            <tr><td><strong>Preferences</strong></td><td>Favorite class types, home city, privacy settings</td><td>Legitimate interest</td></tr>
+            <tr><td><strong>Communications</strong></td><td>Messages to support, feedback, survey responses</td><td>Legitimate interest</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>2.2 Information We Collect Automatically</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Category</th><th>Examples</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Location Data</strong></td><td>GPS coordinates, city, country (when you enable location)</td><td>Detect nearby studios, auto-log classes</td></tr>
+            <tr><td><strong>Usage Data</strong></td><td>App opens, screen views, taps, session duration</td><td>Improve user experience</td></tr>
+            <tr><td><strong>Device Information</strong></td><td>Device model, OS version, unique device ID</td><td>Troubleshoot, analytics</td></tr>
+            <tr><td><strong>Health Data</strong></td><td>Workout data from Apple HealthKit (if you connect)</td><td>Auto-fill class duration, calories, heart rate</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>2.3 Information from Third Parties</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Source</th><th>Data Collected</th><th>Your Control</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Google Places API</strong></td><td>Studio names, addresses, photos, ratings, reviews</td><td>Not applicable (public data)</td></tr>
+            <tr><td><strong>Apple HealthKit</strong></td><td>Workout type, duration, calories, heart rate</td><td>You must explicitly grant access</td></tr>
+            <tr><td><strong>Apple Sign-In</strong></td><td>Name, email (if you choose Apple Sign-In)</td><td>Controlled by Apple</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="use">
+      <h2>3. How We Use Your Information</h2>
+      <p>We use your information to:</p>
+      <ul>
+        <li>Create and manage your account</li>
+        <li>Log and display your Pilates classes</li>
+        <li>Discover studios near your location</li>
+        <li>Show your personal Passport map and stats</li>
+        <li>Award badges and track challenges</li>
+        <li>Send notifications about your activity (with your permission)</li>
+        <li>Improve the App's features and performance</li>
+        <li>Respond to support requests</li>
+      </ul>
+    </section>
+
+    <section id="share">
+      <h2>4. How We Share Your Information</h2>
+      <h3>4.1 When You Choose to Share Publicly</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Information</th><th>Who Can See It (Public Profile)</th></tr></thead>
+          <tbody>
+            <tr><td>Profile name &amp; photo</td><td>All users</td></tr>
+            <tr><td>Class logs (if set to public)</td><td>All users</td></tr>
+            <tr><td>Reviews &amp; ratings</td><td>All users</td></tr>
+            <tr><td>Badges earned</td><td>All users</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight">
+        <strong>Private by default:</strong> All class logs are PRIVATE by default. Only you can see your personal logs unless you explicitly change visibility settings.
+      </div>
+
+      <h3>4.2 Third-Party Services We Use</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Service</th><th>Purpose</th><th>Data Shared</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Supabase</strong></td><td>Database, authentication, storage</td><td>Account data, logs, photos</td></tr>
+            <tr><td><strong>Vercel</strong></td><td>Hosting</td><td>Usage data, IP addresses</td></tr>
+            <tr><td><strong>Google Places API</strong></td><td>Studio search &amp; discovery</td><td>Location, search queries</td></tr>
+            <tr><td><strong>Apple HealthKit</strong></td><td>Workout import (with permission)</td><td>Workout data</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>4.3 Legal Disclosures</h3>
+      <p>We may disclose your information if required by law, court order, or government regulation.</p>
+    </section>
+
+    <section id="rights">
+      <h2>5. Your Rights and Choices</h2>
+      <h3>5.1 Privacy Controls</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Setting</th><th>What It Does</th></tr></thead>
+          <tbody>
+            <tr><td>Public/Private Profile</td><td>Controls who can see your profile and activity</td></tr>
+            <tr><td>Class Visibility</td><td>Per-class setting (public/private)</td></tr>
+            <tr><td>Photo Visibility</td><td>Per-photo setting</td></tr>
+            <tr><td>Location Permission</td><td>Enable/disable GPS detection</td></tr>
+            <tr><td>Apple Health Access</td><td>Connect/disconnect HealthKit</td></tr>
+            <tr><td>Notification Settings</td><td>Enable/disable push notifications</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>5.2 Your Rights (GDPR, CCPA, etc.)</h3>
+      <p>Depending on your location, you may have the right to:</p>
+      <ul>
+        <li><strong>Access</strong> – Request a copy of your data</li>
+        <li><strong>Rectification</strong> – Correct inaccurate data</li>
+        <li><strong>Erasure</strong> – Request deletion of your data ("Right to be forgotten")</li>
+        <li><strong>Restriction</strong> – Limit how we use your data</li>
+        <li><strong>Portability</strong> – Receive your data in a machine-readable format</li>
+        <li><strong>Objection</strong> – Object to certain data processing</li>
+      </ul>
+      <p>To exercise these rights, contact us at: <a href="mailto:dataprivacy@pilatespassport.app">dataprivacy@pilatespassport.app</a></p>
+
+      <h3>5.3 Data Retention</h3>
+      <p>We retain your data as long as your account is active. When you delete your account, we permanently delete your data within 30 days.</p>
+    </section>
+
+    <section id="location">
+      <h2>6. Location Data</h2>
+      <p>Pilates Passport uses location data to detect nearby Pilates studios, auto-prompt you to log classes when you visit a studio, and distinguish local vs. travel classes.</p>
+      <div class="highlight">
+        <strong>You are in control:</strong> Location is only used while you use the App (not in background). You can deny location permission at any time. Manual logging is always available as a fallback.
+      </div>
+    </section>
+
+    <section id="healthkit">
+      <h2>7. Apple HealthKit Integration</h2>
+      <p>If you choose to connect Apple HealthKit:</p>
+      <ul>
+        <li>We <strong>only read</strong> workout data (Pilates, Functional Strength, etc.)</li>
+        <li>We <strong>never write</strong> data to HealthKit</li>
+        <li>You must explicitly grant permission</li>
+        <li>You can revoke access anytime in Settings</li>
+        <li>Health data is never shared with third parties</li>
+      </ul>
+    </section>
+
+    <section id="children">
+      <h2>8. Children's Privacy</h2>
+      <p>Pilates Passport is not intended for children under 13. We do not knowingly collect personal information from children under 13.</p>
+    </section>
+
+    <section id="security">
+      <h2>9. Data Security</h2>
+      <p>We implement industry-standard security measures including end-to-end encryption for sensitive data, Row Level Security (RLS) in Supabase, regular security audits, and HTTPS for all data transmission. However, no method of transmission over the Internet is 100% secure.</p>
+    </section>
+
+    <section id="international">
+      <h2>10. International Data Transfers</h2>
+      <p>Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place.</p>
+    </section>
+
+    <section id="changes">
+      <h2>11. Changes to This Privacy Policy</h2>
+      <p>We may update this Privacy Policy from time to time. We will notify you of material changes via in-app notification, email (if provided), or notice on our website.</p>
+    </section>
+
+    <section id="contact">
+      <h2>12. Contact Us</h2>
+      <p>For privacy questions or concerns:</p>
+      <div class="contact-grid">
+        <div class="contact-card">
+          <div class="label">Email</div>
+          <div class="value"><a href="mailto:dataprivacy@pilatespassport.app">dataprivacy@pilatespassport.app</a></div>
+        </div>
+        <div class="contact-card">
+          <div class="label">Website</div>
+          <div class="value"><a href="https://pilatespassport.app/policy">pilatespassport.app/policy</a></div>
+        </div>
+        <div class="contact-card">
+          <div class="label">Mail</div>
+          <div class="value" style="color:#C0C0D0; font-size:13px;">2901 E Greenway Rd, Phoenix, AZ 85032</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="ccpa">
+      <h2>13. Your California Privacy Rights (CCPA)</h2>
+      <p>California residents have the right to request disclosure of data collected, request deletion of personal information, and opt out of "sale" of personal information. <strong>We do not sell your data.</strong></p>
+    </section>
+
+    <section id="gdpr">
+      <h2>14. Your European Privacy Rights (GDPR)</h2>
+      <p>If you are in the European Economic Area (EEA), you have the right to lodge a complaint with your local data protection authority.</p>
+    </section>
+
+  </div>
+
+  <footer>
+    <p>© 2026 Pilates Passport · <a href="/policy">Privacy Policy</a> · <a href="/tos">Terms of Service</a> · <a href="mailto:dataprivacy@pilatespassport.app">Contact</a></p>
+  </footer>
+
+</body>
+</html>

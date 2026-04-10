@@ -1878,6 +1878,161 @@ function StudioReviews({ studioId, googlePlaceId, placeId, C }) {
     </div>
   );
 }
+/* ── GoogleReviewsTab — real reviews from Google Places ─────────────────── */
+function GoogleReviewsTab({ placeId, overallRating, C }) {
+  const [reviews, setReviews]     = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [totalRating, setTotal]   = useState(overallRating || 0);
+  const [totalCount, setCount]    = useState(0);
+
+  useEffect(() => {
+    if (!placeId) { setLoading(false); return; }
+    fetch(`/api/places-search?place_id=${encodeURIComponent(placeId)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.studio?.googleReviews?.length > 0) setReviews(data.studio.googleReviews);
+        if (data.studio?.rating) setTotal(data.studio.rating);
+        if (data.studio?.reviews) setCount(data.studio.reviews);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [placeId]);
+
+  if (!placeId) return (
+    <div style={{ textAlign: "center", padding: "40px 20px" }}>
+      <p style={{ fontSize: 36, marginBottom: 10 }}>🔍</p>
+      <p style={{ fontSize: 14, fontWeight: 700, color: C.textPri, margin: "0 0 6px", fontFamily: FB }}>No Google listing linked</p>
+      <p style={{ fontSize: 12, color: C.textSec, fontFamily: FB }}>Search for this studio via Google Places to load reviews.</p>
+    </div>
+  );
+
+  if (loading) return <div style={{ textAlign: "center", padding: "40px 0" }}><p style={{ fontSize: 13, color: C.textSec, fontFamily: FB }}>Fetching Google reviews…</p></div>;
+
+  if (reviews.length === 0) return (
+    <div style={{ textAlign: "center", padding: "40px 20px" }}>
+      <p style={{ fontSize: 36, marginBottom: 10 }}>🌐</p>
+      <p style={{ fontSize: 14, fontWeight: 700, color: C.textPri, margin: "0 0 6px", fontFamily: FB }}>No Google review text available</p>
+      <p style={{ fontSize: 12, color: C.textSec, margin: "0 0 14px", fontFamily: FB }}>Google may not return review text for this studio.</p>
+      <a href={`https://www.google.com/maps/search/?api=1&query_place_id=${placeId}`} target="_blank" rel="noopener noreferrer"
+        style={{ fontSize: 13, fontWeight: 700, color: C.blue, textDecoration: "none", fontFamily: FB }}>View on Google Maps →</a>
+    </div>
+  );
+
+  const dist = { 5:0, 4:0, 3:0, 2:0, 1:0 };
+  reviews.forEach(r => { const s = Math.round(r.rating||0); if (dist[s] !== undefined) dist[s]++; });
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <p style={{ fontSize: 15, fontWeight: 800, color: C.textPri, margin: 0, fontFamily: FB }}>🌐 Google Reviews</p>
+        <span style={{ fontSize: 9, background: C.blueDim, color: C.blue, borderRadius: 6, padding: "2px 8px", fontWeight: 800, fontFamily: FB, marginLeft: "auto" }}>GOOGLE</span>
+      </div>
+      <p style={{ fontSize: 11, color: C.textSec, margin: "0 0 14px", fontFamily: FB }}>Sourced directly from Google Maps</p>
+
+      {totalRating > 0 && (
+        <div style={{ background: C.surfaceHi, borderRadius: 16, padding: "14px", marginBottom: 16, display: "flex", gap: 16, alignItems: "center" }}>
+          <div style={{ textAlign: "center", flexShrink: 0 }}>
+            <p style={{ fontSize: 40, fontWeight: 800, color: C.blue, margin: 0, lineHeight: 1, fontFamily: FB }}>{totalRating}</p>
+            <div style={{ margin: "4px 0 2px" }}>{[1,2,3,4,5].map(n => <span key={n} style={{ color: n <= Math.round(totalRating) ? "#FFB800" : C.textTer, fontSize: 13 }}>★</span>)}</div>
+            <p style={{ fontSize: 10, color: C.textTer, margin: 0, fontFamily: FB }}>{totalCount > 0 ? `${totalCount} total` : `${reviews.length} shown`}</p>
+          </div>
+          <div style={{ flex: 1 }}>
+            {[5,4,3,2,1].map(star => {
+              const count = dist[star] || 0;
+              const pct = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+              return (
+                <div key={star} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 10, color: C.textSec, width: 16, fontFamily: FB }}>{star}★</span>
+                  <div style={{ flex: 1, height: 5, background: C.surfaceEl, borderRadius: 100, overflow: "hidden" }}>
+                    <div style={{ width: `${pct}%`, height: "100%", background: "#FFB800", borderRadius: 100, transition: "width 0.5s ease" }} />
+                  </div>
+                  <span style={{ fontSize: 10, color: C.textTer, width: 18, textAlign: "right", fontFamily: FB }}>{count}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {reviews.map((r, i) => (
+        <div key={i} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 18, padding: "14px 16px", marginBottom: 10 }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 8 }}>
+            {r.profile_photo_url
+              ? <img src={r.profile_photo_url} alt="" style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display="none"; }} />
+              : <div style={{ width: 34, height: 34, borderRadius: "50%", background: C.blueDim, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: C.blue, fontWeight: 800, flexShrink: 0, fontFamily: FB }}>{(r.author_name||"G")[0]}</div>
+            }
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: C.textPri, margin: "0 0 2px", fontFamily: FB }}>{r.author_name || "Google User"}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ color: "#FFB800", fontSize: 12 }}>{"★".repeat(r.rating||0)}{"☆".repeat(5-(r.rating||0))}</span>
+                {r.relative_time_description && <span style={{ fontSize: 10, color: C.textTer, fontFamily: FB }}>{r.relative_time_description}</span>}
+              </div>
+            </div>
+          </div>
+          {r.text && <p style={{ fontSize: 13, color: C.textSec, lineHeight: 1.65, margin: 0, fontFamily: FB }}>{r.text}</p>}
+        </div>
+      ))}
+      <p style={{ fontSize: 10, color: C.textTer, textAlign: "center", marginTop: 8, fontFamily: FB }}>Reviews provided by Google</p>
+    </div>
+  );
+}
+
+/* ── InAppReviewsTab — reviews by Pilates Passport users ────────────────── */
+function InAppReviewsTab({ studioId, googlePlaceId, C }) {
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const pid = googlePlaceId || (typeof studioId === "string" && studioId.startsWith("Ch") ? studioId : null);
+    const q = pid
+      ? supabase.from("reviews").select("*, users(display_name, profile_photo_url)").eq("google_place_id", pid).eq("moderation_status","approved").order("created_at",{ascending:false})
+      : supabase.from("reviews").select("*, users(display_name, profile_photo_url)").eq("studio_id", studioId).eq("moderation_status","approved").order("created_at",{ascending:false});
+    q.then(({ data }) => setReviews(data || [])).catch(() => {}).finally(() => setLoading(false));
+  }, [studioId, googlePlaceId]);
+
+  if (loading) return <div style={{ textAlign: "center", padding: "40px 0" }}><p style={{ fontSize: 13, color: C.textSec, fontFamily: FB }}>Loading community reviews…</p></div>;
+
+  if (reviews.length === 0) return (
+    <div style={{ textAlign: "center", padding: "40px 20px" }}>
+      <p style={{ fontSize: 40, marginBottom: 12 }}>🪷</p>
+      <p style={{ fontSize: 15, fontWeight: 800, color: C.textPri, margin: "0 0 6px", fontFamily: FB }}>No community reviews yet</p>
+      <p style={{ fontSize: 12, color: C.textSec, fontFamily: FB }}>Be the first Pilates Passport user to review this studio!</p>
+    </div>
+  );
+
+  const avg = (reviews.reduce((s,r) => s+(r.rating||0), 0) / reviews.length).toFixed(1);
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <p style={{ fontSize: 15, fontWeight: 800, color: C.textPri, margin: 0, fontFamily: FB }}>🪷 Community Reviews</p>
+        <span style={{ fontSize: 9, background: C.accentDim, color: C.accent, borderRadius: 6, padding: "2px 8px", fontWeight: 800, fontFamily: FB, marginLeft: "auto" }}>PILATES PASSPORT</span>
+      </div>
+      <p style={{ fontSize: 11, color: C.textSec, margin: "0 0 14px", fontFamily: FB }}>Written by Pilates Passport users · Avg ★ {avg}</p>
+
+      {reviews.map((r, i) => (
+        <div key={r.id||i} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 18, padding: "14px 16px", marginBottom: 10 }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 8 }}>
+            {r.users?.profile_photo_url
+              ? <img src={r.users.profile_photo_url} alt="" style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display="none"; }} />
+              : <div style={{ width: 34, height: 34, borderRadius: "50%", background: C.accentDim, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, color: C.accent, fontWeight: 800, flexShrink: 0, fontFamily: FB }}>{(r.users?.display_name||"P")[0].toUpperCase()}</div>
+            }
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: C.textPri, margin: "0 0 2px", fontFamily: FB }}>{r.users?.display_name || "Pilates Lover"}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ color: "#FFB800", fontSize: 12 }}>{"★".repeat(r.rating||0)}{"☆".repeat(5-(r.rating||0))}</span>
+                <span style={{ fontSize: 10, color: C.textTer, fontFamily: FB }}>{new Date(r.created_at).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}</span>
+              </div>
+            </div>
+          </div>
+          {r.body && <p style={{ fontSize: 13, color: C.textSec, lineHeight: 1.65, margin: "0 0 8px", fontFamily: FB }}>{r.body}</p>}
+          {r.tags?.length > 0 && <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{r.tags.map(t => <span key={t} style={{ background: C.accentDim, color: C.accent, borderRadius: 100, padding: "3px 10px", fontSize: 10, fontWeight: 700, fontFamily: FB }}>{t}</span>)}</div>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function StudioDetail({ studio, logs, onBack, savedStudios, toggleSave, setTab, setLogPrefill, showToast }) {
   const { C } = useTheme();
   const [tab, setLT] = useState("about");
@@ -1888,7 +2043,6 @@ function StudioDetail({ studio, logs, onBack, savedStudios, toggleSave, setTab, 
   const [loadingDetails, setLoadingDetails] = useState(false);
   const vl = logs.filter(l => (l.studioId || l.studio_id) === studio.id);
   const saved = savedStudios.includes(studio.id);
-  const ct = [{ tag: "Great instructors", count: 87 }, { tag: "Beautiful space", count: 62 }, { tag: "Challenging but accessible", count: 41 }, { tag: "Clean & organized", count: 38 }];
 
   // Fetch real place details from Google when studio has a place_id
   useEffect(() => {
@@ -1926,7 +2080,7 @@ function StudioDetail({ studio, logs, onBack, savedStudios, toggleSave, setTab, 
       const { data: { user } } = await supabase.auth.getUser();
       await supabase.from("reviews").upsert({ user_id: user.id, studio_id: studio.id, rating: reviewRating, body: reviewText, moderation_status: "approved" });
       showToast("Review submitted! ✦");
-      setReviewText(""); setLT("reviews");
+      setReviewText(""); setLT("in-app reviews");
     } catch (e) { showToast("Failed to submit review"); }
     finally { setSubmittingReview(false); }
   };
@@ -2021,8 +2175,16 @@ function StudioDetail({ studio, logs, onBack, savedStudios, toggleSave, setTab, 
         </div>
 
         <div style={{ display: "flex", gap: 0, borderBottom: `1px solid ${C.border}`, marginBottom: 16 }}>
-          {["about", "reviews", "history", "write review"].map(t => (
-            <button key={t} onClick={() => setLT(t)} style={{ flex: 1, background: "none", border: "none", borderBottom: `2px solid ${tab === t ? C.accent : "transparent"}`, padding: "9px 4px", fontSize: t.length > 7 ? 10 : 12, fontWeight: 700, color: tab === t ? C.accent : C.textTer, cursor: "pointer", fontFamily: FB, textTransform: "capitalize", transition: "all 0.15s" }}>{t}</button>
+          {["about", "google reviews", "in-app reviews", "history", "write review"].map(t => (
+            <button key={t} onClick={() => setLT(t)} style={{
+              flex: 1, background: "none", border: "none",
+              borderBottom: `2px solid ${tab === t ? C.accent : "transparent"}`,
+              padding: "9px 2px",
+              fontSize: t.length > 10 ? 9 : t.length > 7 ? 10 : 12,
+              fontWeight: 700, color: tab === t ? C.accent : C.textTer,
+              cursor: "pointer", fontFamily: FB, textTransform: "capitalize",
+              transition: "all 0.15s", whiteSpace: "nowrap",
+            }}>{t}</button>
           ))}
         </div>
 
@@ -2057,19 +2219,42 @@ function StudioDetail({ studio, logs, onBack, savedStudios, toggleSave, setTab, 
             );
           })()}
 
-          <SL>Why people love it</SL>
-          {ct.map(({ tag, count }) => (
-            <div key={tag} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-              <p style={{ fontSize: 12, color: C.textPri, margin: 0, width: 170, flexShrink: 0 }}>{tag}</p>
-              <div style={{ flex: 1, height: 4, background: C.surfaceHi, borderRadius: 100, overflow: "hidden" }}><div style={{ height: "100%", width: `${(count / 90) * 100}%`, background: C.accent, borderRadius: 100 }} /></div>
-              <span style={{ fontSize: 11, color: C.textTer, width: 28, textAlign: "right" }}>{count}</span>
+          <SL>Class types</SL>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+            {(s.tags || s.types || studio.class_types || []).length > 0
+              ? (s.tags || s.types || studio.class_types || []).map(t => <Pill key={t} label={t} />)
+              : <p style={{ fontSize: 12, color: C.textSec, margin: 0, fontFamily: FB }}>Reformer · Mat · Pilates</p>
+            }
+          </div>
+
+          {s.vibe && s.vibe.length > 20 && (
+            <div style={{ marginBottom: 16 }}>
+              <SL>About</SL>
+              <p style={{ fontSize: 13, color: C.textSec, lineHeight: 1.65, margin: 0, fontFamily: FB }}>{s.vibe}</p>
             </div>
-          ))}
-          <SL style={{ marginTop: 12 }}>Class types</SL>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{(studio.types || studio.class_types || []).map(t => <Pill key={t} label={t} />)}</div>
+          )}
+
+          <div style={{ background: C.surfaceHi, border: `1px solid ${C.border}`, borderRadius: 16, padding: "14px 16px", marginTop: 8 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: C.textPri, margin: "0 0 4px", fontFamily: FB }}>See what people say</p>
+            <p style={{ fontSize: 12, color: C.textSec, margin: "0 0 12px", fontFamily: FB }}>Real reviews from Google and Pilates Passport users</p>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => setLT("google reviews")} style={{ flex: 1, background: C.blueDim, border: `1px solid ${C.blue}30`, borderRadius: 10, padding: "9px 0", fontSize: 12, fontWeight: 700, color: C.blue, cursor: "pointer", fontFamily: FB }}>
+                🌐 Google Reviews
+              </button>
+              <button onClick={() => setLT("in-app reviews")} style={{ flex: 1, background: C.accentDim, border: `1px solid ${C.accent}30`, borderRadius: 10, padding: "9px 0", fontSize: 12, fontWeight: 700, color: C.accent, cursor: "pointer", fontFamily: FB }}>
+                🪷 Community
+              </button>
+            </div>
+          </div>
         </div>}
 
-        {tab === "reviews" && <StudioReviews studioId={studio.id} googlePlaceId={studio.google_place_id || studio.place_id} placeId={studio.place_id} C={C} />}
+        {tab === "google reviews" && (
+          <GoogleReviewsTab placeId={s.google_place_id || studio.place_id || (typeof studio.id === "string" && studio.id.startsWith("Ch") ? studio.id : null)} overallRating={s.rating} C={C} />
+        )}
+
+        {tab === "in-app reviews" && (
+          <InAppReviewsTab studioId={studio.id} googlePlaceId={s.google_place_id} C={C} />
+        )}
 
         {tab === "history" && <div>
           {vl.length === 0
@@ -3089,7 +3274,12 @@ function ProfileScreen({ logs, savedStudios, savedStudiosCache, challenges, join
 
           <div style={{ textAlign: "center", paddingTop: 24, paddingBottom: 8 }}>
             <img src="/logo.png" alt="Pilates Passport" style={{ width: 40, height: 40, objectFit: "contain", opacity: 0.4, marginBottom: 6 }} />
-            <p style={{ fontSize: 11, color: C.textTer }}>Pilates Passport · v1.0</p>
+            <p style={{ fontSize: 11, color: C.textTer, marginBottom: 10 }}>Pilates Passport · v1.0</p>
+            <div style={{ display: "flex", justifyContent: "center", gap: 16 }}>
+              <a href="/policy" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: C.textSec, textDecoration: "none", fontWeight: 600 }}>Privacy Policy</a>
+              <span style={{ color: C.textTer, fontSize: 12 }}>·</span>
+              <a href="/tos" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: C.textSec, textDecoration: "none", fontWeight: 600 }}>Terms of Service</a>
+            </div>
           </div>
         </div>}
       </div>

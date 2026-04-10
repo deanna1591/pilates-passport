@@ -212,6 +212,14 @@ export default function AuthScreen() {
       {screen === 'signin' && <SignIn onSwitch={setScreen} />}
       {screen === 'signup' && <SignUp onSwitch={setScreen} />}
       {screen === 'forgot' && <Forgot onSwitch={setScreen} />}
+      <div style={{ textAlign: 'center', marginTop: 32, paddingTop: 20, borderTop: `1px solid ${C.border}` }}>
+        <p style={{ fontSize: 12, color: C.textTer, marginBottom: 8 }}>© 2026 Pilates Passport</p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 20 }}>
+          <a href="/policy" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: C.textSec, textDecoration: 'none', fontWeight: 600 }}>Privacy Policy</a>
+          <span style={{ color: C.textTer, fontSize: 12 }}>·</span>
+          <a href="/tos" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: C.textSec, textDecoration: 'none', fontWeight: 600 }}>Terms of Service</a>
+        </div>
+      </div>
     </div>
   )
 }

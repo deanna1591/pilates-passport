@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terms of Service — Pilates Passport</title>
+  <link rel="icon" href="/favicon.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #FAF8F6;
+      color: #1E1410;
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #FF6B6B; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .top-bar {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(250,248,246,0.97);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(60,40,20,0.10);
+      padding: 16px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, #A06CD5, #FF6B6B);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .logo-name { font-size: 16px; font-weight: 800; color: #1E1410; }
+    .back-btn {
+      font-size: 13px; font-weight: 700; color: #FF6B6B;
+      background: rgba(255,107,107,0.12); border: 1px solid rgba(255,107,107,0.25);
+      border-radius: 100px; padding: 7px 16px; cursor: pointer; text-decoration: none;
+      transition: all 0.15s;
+    }
+    .back-btn:hover { background: rgba(255,107,107,0.22); text-decoration: none; }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(232,113,74,0.08), rgba(123,53,193,0.05));
+      border-bottom: 1px solid rgba(60,40,20,0.10);
+      padding: 56px 24px 40px;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255,107,107,0.15); color: #FF6B6B;
+      border: 1px solid rgba(255,107,107,0.3);
+      border-radius: 100px; padding: 6px 16px;
+      font-size: 11px; font-weight: 800; letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 16px;
+    }
+    .hero h1 { font-size: 36px; font-weight: 800; color: #1E1410; margin-bottom: 10px; }
+    .hero p { font-size: 14px; color: #8A7A6A; }
+
+    .container { max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    .toc {
+      background: #FFFFFF; border: 1px solid rgba(60,40,20,0.10);
+      border-radius: 18px; padding: 24px; margin-bottom: 40px;
+    }
+    .toc h3 { font-size: 13px; font-weight: 800; color: #8A7A6A; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; }
+    .toc ol { padding-left: 20px; }
+    .toc li { margin-bottom: 6px; }
+    .toc a { color: #FF6B6B; font-size: 14px; font-weight: 500; }
+
+    section { margin-bottom: 44px; }
+    h2 {
+      font-size: 22px; font-weight: 800; color: #1E1410;
+      margin-bottom: 16px; padding-bottom: 10px;
+      border-bottom: 1px solid rgba(60,40,20,0.10);
+    }
+    h3 { font-size: 16px; font-weight: 700; color: #1E1410; margin: 20px 0 10px; }
+    p { color: #5A4A3A; margin-bottom: 12px; }
+
+    .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: 14px; border: 1px solid rgba(60,40,20,0.10); }
+    table { width: 100%; border-collapse: collapse; min-width: 400px; }
+    th {
+      background: #F0EDE8; color: #8A7A6A;
+      font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 12px 16px; text-align: left;
+    }
+    td { padding: 12px 16px; font-size: 14px; color: #6A5A4A; border-top: 1px solid rgba(60,40,20,0.08); }
+    tr:hover td { background: rgba(60,40,20,0.03); }
+
+    ul, ol.content { padding-left: 20px; margin-bottom: 12px; }
+    li { color: #5A4A3A; margin-bottom: 6px; font-size: 14px; }
+
+    .highlight {
+      background: rgba(232,113,74,0.07); border: 1px solid rgba(255,107,107,0.2);
+      border-radius: 14px; padding: 18px 20px; margin: 16px 0;
+    }
+    .highlight strong { color: #FF6B6B; }
+
+    .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 12px; margin-top: 16px; }
+    .contact-card {
+      background: #FFFFFF; border: 1px solid rgba(60,40,20,0.10);
+      border-radius: 14px; padding: 16px;
+    }
+    .contact-card .label { font-size: 11px; color: #8A7A6A; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .contact-card .value { font-size: 14px; color: #E8714A; font-weight: 600; }
+
+    footer {
+      background: #F0EDE8; border-top: 1px solid rgba(60,40,20,0.10);
+      padding: 28px 24px; text-align: center;
+    }
+    footer p { font-size: 13px; color: #9A8A7A; }
+    footer a { color: #FF6B6B; }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <a href="/" class="logo">
+      <div class="logo-icon">🪷</div>
+      <span class="logo-name">Pilates Passport</span>
+    </a>
+    <a href="/" class="back-btn">← Back to App</a>
+  </div>
+
+  <div class="hero">
+    <div class="hero-badge">Legal</div>
+    <h1>Terms of Service</h1>
+    <p>Effective Date: April 9, 2026 &nbsp;·&nbsp; Last Updated: April 9, 2026</p>
+  </div>
+
+  <div class="container">
+
+    <div class="toc">
+      <h3>Table of Contents</h3>
+      <ol>
+        <li><a href="#acceptance">Acceptance of Terms</a></li>
+        <li><a href="#eligibility">Eligibility</a></li>
+        <li><a href="#account">Account Registration</a></li>
+        <li><a href="#content">User Content</a></li>
+        <li><a href="#use">Acceptable Use</a></li>
+        <li><a href="#ip">Intellectual Property</a></li>
+        <li><a href="#third-party">Third-Party Services</a></li>
+        <li><a href="#location">Location Data</a></li>
+        <li><a href="#healthkit">Apple HealthKit</a></li>
+        <li><a href="#payments">Premium Features &amp; Payments</a></li>
+        <li><a href="#disclaimer">Disclaimers</a></li>
+        <li><a href="#liability">Limitation of Liability</a></li>
+        <li><a href="#termination">Termination</a></li>
+        <li><a href="#governing">Governing Law</a></li>
+        <li><a href="#changes">Changes to Terms</a></li>
+        <li><a href="#contact">Contact Us</a></li>
+      </ol>
+    </div>
+
+    <section id="acceptance">
+      <h2>1. Acceptance of Terms</h2>
+      <p>By downloading, accessing, or using Pilates Passport (the "App", "Service", or "We"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the App.</p>
+    </section>
+
+    <section id="eligibility">
+      <h2>2. Eligibility</h2>
+      <p>You may use Pilates Passport only if:</p>
+      <ul>
+        <li>You are at least 13 years old</li>
+        <li>You are not located in a country subject to U.S. embargo or sanctions</li>
+        <li>You have not been previously banned or suspended from the App</li>
+        <li>You are not a competitor of Pilates Passport</li>
+      </ul>
+    </section>
+
+    <section id="account">
+      <h2>3. Account Registration</h2>
+      <h3>3.1 Account Creation</h3>
+      <p>You must create an account to use Pilates Passport. You agree to provide accurate, current, and complete information during registration. You are responsible for all activity that occurs under your account.</p>
+      <h3>3.2 Account Security</h3>
+      <p>You are solely responsible for maintaining the confidentiality of your password. You agree to notify us immediately of any unauthorized use of your account or any other breach of security.</p>
+      <h3>3.3 Account Deletion</h3>
+      <p>You may delete your account at any time by going to Profile → Settings → Delete Account. Upon deletion, we will permanently remove your data within 30 days. Some anonymized data may be retained for analytics purposes.</p>
+      <h3>3.4 Third-Party Authentication</h3>
+      <p>If you sign in using Apple Sign-In, you authorize us to access your name and email address as provided by Apple.</p>
+    </section>
+
+    <section id="content">
+      <h2>4. User Content</h2>
+      <h3>4.1 What You May Post</h3>
+      <p>You may upload, post, or submit: class logs, photos of classes and studios, reviews and ratings, and profile information.</p>
+      <h3>4.2 Content Restrictions</h3>
+      <p>You may NOT post content that is offensive, harassing, or discriminatory; contains nudity or explicit material; is spam or promotional; infringes intellectual property rights; is false or misleading; violates any law; or impersonates another person.</p>
+      <h3>4.3 Content Ownership</h3>
+      <ul>
+        <li>You retain all ownership rights to your User Content.</li>
+        <li>By posting, you grant Pilates Passport a non-exclusive, royalty-free, worldwide license to host, store, display, and share your content in accordance with your privacy settings.</li>
+        <li>For content marked as "public", you grant us the right to display it to other users.</li>
+      </ul>
+      <h3>4.4 Content Moderation</h3>
+      <p>We reserve the right to review, monitor, or remove any User Content at our sole discretion and to suspend accounts that repeatedly violate these Terms.</p>
+    </section>
+
+    <section id="use">
+      <h2>5. Acceptable Use</h2>
+      <p>You agree NOT to: reverse engineer the App; use bots or scrapers; interfere with the App's operation; attempt unauthorized access to other accounts; use the App illegally; impersonate any person; or commercially exploit the App without permission.</p>
+    </section>
+
+    <section id="ip">
+      <h2>6. Intellectual Property</h2>
+      <h3>6.1 Our Intellectual Property</h3>
+      <p>The App, including its design, layout, graphics, logos, trademarks, and code, is owned by Pilates Passport and protected by copyright, trademark, and other intellectual property laws.</p>
+      <h3>6.2 License to Use</h3>
+      <p>We grant you a limited, non-exclusive, non-transferable, revocable license to use the App for your personal, non-commercial use only.</p>
+      <h3>6.3 Restrictions</h3>
+      <p>You may not copy, modify, distribute, sell, or lease any part of the App without our prior written consent.</p>
+    </section>
+
+    <section id="third-party">
+      <h2>7. Third-Party Services</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Service</th><th>Purpose</th><th>Your Agreement</th></tr></thead>
+          <tbody>
+            <tr><td>Google Places API</td><td>Studio search and discovery</td><td>You agree to Google's Terms of Service</td></tr>
+            <tr><td>Apple HealthKit</td><td>Import workout data</td><td>You agree to Apple's Terms and must grant explicit permission</td></tr>
+            <tr><td>Apple Sign-In</td><td>Account authentication</td><td>You agree to Apple's Terms</td></tr>
+            <tr><td>Supabase</td><td>Database and authentication</td><td>You agree to Supabase's Terms</td></tr>
+            <tr><td>Vercel</td><td>App hosting</td><td>You agree to Vercel's Terms</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>We are not responsible for the practices of these third parties.</p>
+    </section>
+
+    <section id="location">
+      <h2>8. Location Data</h2>
+      <p>Pilates Passport requires location access to detect nearby studios, auto-prompt class logging, and distinguish local vs. travel classes.</p>
+      <div class="highlight">
+        <strong>Your control:</strong> Location is only used while actively using the App. You can deny location permission at any time. We do not track your location in the background.
+      </div>
+    </section>
+
+    <section id="healthkit">
+      <h2>9. Apple HealthKit Integration</h2>
+      <p>If you connect Apple HealthKit: we only READ workout data; we NEVER WRITE to HealthKit; you must explicitly grant permission; you can revoke access at any time; health data is never shared with third parties or used for advertising.</p>
+    </section>
+
+    <section id="payments">
+      <h2>10. Premium Features &amp; Payments</h2>
+      <h3>10.1 Free Tier</h3>
+      <p>Pilates Passport is currently free to use with no class log limits.</p>
+      <h3>10.2 Premium Subscription (Future)</h3>
+      <p>If we introduce premium features in the future, subscription fees and terms will be clearly disclosed before purchase. Payments will be processed through Apple App Store or Google Play Store. You can cancel at any time through your app store account.</p>
+      <h3>10.3 No Booking or Payments to Studios</h3>
+      <p>Pilates Passport does NOT process payments for studio bookings. Any "Book a class" links redirect you to the studio's own website. We are not responsible for any transactions you make with studios.</p>
+    </section>
+
+    <section id="disclaimer">
+      <h2>11. Disclaimers</h2>
+      <div class="highlight">
+        <strong>THE APP IS PROVIDED "AS IS"</strong> WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED. WE DO NOT WARRANT THAT THE APP WILL BE UNINTERRUPTED, ERROR-FREE, OR FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS.
+      </div>
+      <p>We are not responsible for the accuracy of studio information, class schedules, or pricing displayed in the App. Studio data is sourced from Google Places API and user submissions.</p>
+    </section>
+
+    <section id="liability">
+      <h2>12. Limitation of Liability</h2>
+      <p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, PILATES PASSPORT SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING OUT OF YOUR USE OF THE APP. OUR TOTAL LIABILITY SHALL NOT EXCEED $100 USD.</p>
+    </section>
+
+    <section id="termination">
+      <h2>13. Termination</h2>
+      <p>We may suspend or terminate your access to the App at any time, for any reason, including violation of these Terms. Upon termination, your right to use the App ceases immediately.</p>
+    </section>
+
+    <section id="governing">
+      <h2>14. Governing Law</h2>
+      <p>These Terms shall be governed by the laws of the State of Arizona, United States, without regard to its conflict of law provisions. Any disputes shall be resolved in the courts of Maricopa County, Arizona.</p>
+    </section>
+
+    <section id="changes">
+      <h2>15. Changes to Terms</h2>
+      <p>We reserve the right to modify these Terms at any time. We will notify you of material changes via in-app notification or email. Continued use of the App after changes constitutes acceptance of the new Terms.</p>
+    </section>
+
+    <section id="contact">
+      <h2>16. Contact Us</h2>
+      <p>If you have any questions about these Terms:</p>
+      <div class="contact-grid">
+        <div class="contact-card">
+          <div class="label">Email</div>
+          <div class="value"><a href="mailto:legal@pilatespassport.app">legal@pilatespassport.app</a></div>
+        </div>
+        <div class="contact-card">
+          <div class="label">Website</div>
+          <div class="value"><a href="https://pilatespassport.app/tos">pilatespassport.app/tos</a></div>
+        </div>
+        <div class="contact-card">
+          <div class="label">Mail</div>
+          <div class="value" style="color:#C0C0D0; font-size:13px;">2901 E Greenway Rd, Phoenix, AZ 85032</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    <p>© 2026 Pilates Passport · <a href="/policy">Privacy Policy</a> · <a href="/tos">Terms of Service</a> · <a href="mailto:legal@pilatespassport.app">Contact</a></p>
+  </footer>
+
+</body>
+</html>

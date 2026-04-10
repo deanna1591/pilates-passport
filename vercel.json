@@ -3,7 +3,9 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/policy", "destination": "/policy.html" },
+    { "source": "/tos",    "destination": "/tos.html" },
+    { "source": "/(.*)",   "destination": "/index.html" }
   ],
   "headers": [
     {
