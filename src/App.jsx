@@ -893,7 +893,7 @@ function ExploreScreen({ logs, savedStudios, toggleSave, setSelectedStudio, comm
                   </p>
                   <p style={{ fontSize: 13, color: C.textSec, lineHeight: 1.6, margin: "0 0 16px" }}>
                     {search
-                      ? "Try searching just the studio name or city — e.g. "pilates phoenix""
+                      ? "Try searching just the studio name or city — e.g. pilates phoenix"
                       : !userCoords
                         ? "Allow location access so we can find real Pilates studios near you."
                         : "No studios found in your area. Try searching by name above."}
