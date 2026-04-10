@@ -2457,7 +2457,27 @@ export default function App() {
 
   useEffect(() => { if (screenRef.current) screenRef.current.scrollTop = 0; }, [tab, selectedStudio, selectedUser]);
 
+  // Badge system — must be before any early returns (Rules of Hooks)
+  const badgeStats = getStats(logs);
+  const { badges: appBadges, evaluateBadges } = useBadges(badgeStats);
+
   const completeOnboarding = () => { localStorage.setItem("pp_onboarded", "1"); setOnboarded(true); };
+
+  // Called after every successful class log to check for newly unlocked badges
+  const onClassLogged = useCallback(async () => {
+    try {
+      const newBadges = await evaluateBadges();
+      if (newBadges && newBadges.length > 0) {
+        newBadges.forEach(b => {
+          showToast(`🏅 Badge unlocked: ${b.name}!`);
+          notifications.sendNotification(`Badge unlocked: ${b.name} ${b.icon_name || "✦"}`, {
+            body: b.unlock_copy || "Keep up the great practice!",
+            tag: `badge-${b.id}`,
+          });
+        });
+      }
+    } catch (_) {}
+  }, [evaluateBadges, showToast]);
 
   if (!onboarded) return (
     <ThemeProvider>
@@ -2467,27 +2487,6 @@ export default function App() {
       </div>
     </ThemeProvider>
   );
-
-  // Badge system — real Supabase badges
-  const badgeStats = getStats(logs);
-  const { badges: appBadges, evaluateBadges } = useBadges(badgeStats);
-
-  // Called after every successful class log to check for newly unlocked badges
-  const onClassLogged = useCallback(async () => {
-    try {
-      const newBadges = await evaluateBadges();
-      if (newBadges && newBadges.length > 0) {
-        newBadges.forEach(b => {
-          showToast(`🏅 Badge unlocked: ${b.name}!`);
-          // Also fire a push notification if permission granted
-          notifications.sendNotification(`Badge unlocked: ${b.name} ${b.icon_name || "✦"}`, {
-            body: b.unlock_copy || "Keep up the great practice!",
-            tag: `badge-${b.id}`,
-          });
-        });
-      }
-    } catch (_) {}
-  }, [evaluateBadges, showToast]);
 
   const sharedProps = { logs, savedStudios, toggleSave, hkConnected, hkConnect, hkSyncing, hkWorkouts, challenges, joinChallenge, leaveChallenge, communityUsers, setCommunityUsers, showToast, user, userProfile, detectedCity, userCoords, appBadges, onClassLogged, notifications };
 
