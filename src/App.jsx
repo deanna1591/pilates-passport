@@ -18,6 +18,7 @@ import { useBadges } from "./hooks/useBadges";
 import { useChallenges } from "./hooks/useChallenges";
 import { useNotifications } from "./hooks/useNotifications";
 import { useOfflineCache } from "./hooks/useOfflineCache";
+import { useCalendarSync } from "./hooks/useCalendarSync";
 import { searchCache } from "./lib/searchCache";
 import { supabase } from "./lib/supabase";
 
@@ -367,6 +368,65 @@ function Toast({ msg, onClose }) {
 const STUDIOS_SEED = [];
 // BADGES_DEF removed — now fetched from Supabase via useBadges hook
 const CLASS_TYPES = ["Reformer", "Mat", "Tower", "Private", "Group", "Hot Pilates", "Strength", "Stretch / Recovery", "Beginner", "Advanced"];
+
+/* ── Smart studio icon based on tags, name, rating ── */
+function getStudioIcon(studio) {
+  const name  = (studio?.name || "").toLowerCase();
+  const tags  = [...(studio?.tags || []), ...(studio?.types || []), ...(studio?.class_types || [])].map(t => (t||"").toLowerCase());
+  const rating = studio?.rating || 0;
+  const all   = name + " " + tags.join(" ");
+
+  if (rating >= 4.8)           return "🏆";
+  if (all.includes("hot"))     return "🔥";
+  if (all.includes("luxury") || all.includes("premium") || all.includes("boutique")) return "💎";
+  if (all.includes("private")) return "✨";
+  if (all.includes("tower"))   return "⚡";
+  if (all.includes("reformer"))return "🔄";
+  if (all.includes("mat"))     return "🧘‍♀️";
+  if (all.includes("barre"))   return "🩰";
+  if (all.includes("group"))   return "👥";
+  if (all.includes("beginner") || all.includes("intro")) return "🌱";
+  if (all.includes("advanced") || all.includes("expert")) return "💪";
+  if (all.includes("stretch") || all.includes("recovery")) return "🌿";
+  return "🪷";
+}
+
+/* ── Daily motivational Pilates quotes (rotates by day) ── */
+const PILATES_QUOTES = [
+  { quote: "Inhale confidence, exhale doubt.", author: "Pilates wisdom" },
+  { quote: "The mind, when housed within a healthful body, possesses a glorious sense of power.", author: "Joseph Pilates" },
+  { quote: "Physical fitness is the first requisite of happiness.", author: "Joseph Pilates" },
+  { quote: "Change happens through movement, and movement heals.", author: "Joseph Pilates" },
+  { quote: "A body free from nervous tension and fatigue is the ideal shelter for a well-balanced mind.", author: "Joseph Pilates" },
+  { quote: "Every moment of our life can be the beginning of great things.", author: "Pilates wisdom" },
+  { quote: "You are only one workout away from a good mood.", author: "Pilates wisdom" },
+  { quote: "It's never too late to get your body in shape.", author: "Joseph Pilates" },
+  { quote: "Contrology is complete coordination of body, mind, and spirit.", author: "Joseph Pilates" },
+  { quote: "Progress, not perfection.", author: "Pilates wisdom" },
+  { quote: "Your body can do it. It's your mind you need to convince.", author: "Pilates wisdom" },
+  { quote: "10 sessions feel different. 20 sessions look different. 30 sessions change your body.", author: "Joseph Pilates" },
+];
+
+function getDailyQuote() {
+  const day = Math.floor(Date.now() / 86400000);
+  return PILATES_QUOTES[day % PILATES_QUOTES.length];
+}
+
+/* ── Fun loading messages ── */
+const LOADING_MESSAGES = [
+  "Rolling out your mat…",
+  "Finding your zen…",
+  "Counting breaths…",
+  "Aligning your spine…",
+  "Warming up the reformer…",
+  "Centering your core…",
+  "Preparing your practice…",
+  "Breathing in, breathing out…",
+];
+
+function getLoadingMessage() {
+  return LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)];
+}
 const GREETINGS = [
   { top: "Rise & reform,", name: true }, { top: "Your body called.", sub: "Time to show up." },
   { top: "Good morning,", name: true }, { top: "She's back.", sub: "Ready to move?" },
@@ -555,6 +615,83 @@ function BadgeCelebrationModal({ badge, onClose }) {
 /* ══════════════════════════════════════════════════════════════════════════
    CHALLENGE SPOTLIGHT — featured challenge card for Home screen
 ══════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════
+   CALENDAR EVENT CARD — prompts user to log a detected class
+══════════════════════════════════════════════════════════════════════════ */
+function CalendarEventCard({ event, onLog, onDismiss, onIgnore, C }) {
+  const isPast     = event.end && new Date() > event.end;
+  const isUpcoming = event.start && new Date() < event.start;
+  const timeLabel  = event.start
+    ? event.start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
+    : "";
+  const dateLabel  = event.start
+    ? event.start.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+    : "";
+  const studioName = event.location?.split(",")[0] || event.title;
+
+  return (
+    <div style={{
+      background: isPast
+        ? `linear-gradient(135deg, rgba(160,108,213,0.18), rgba(255,107,107,0.10))`
+        : `linear-gradient(135deg, rgba(78,205,196,0.18), rgba(160,108,213,0.10))`,
+      border: `1px solid ${isPast ? "rgba(160,108,213,0.3)" : "rgba(78,205,196,0.3)"}`,
+      borderRadius: 20, padding: "16px", marginBottom: 14,
+    }}>
+      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: 14, flexShrink: 0,
+          background: isPast ? "rgba(160,108,213,0.25)" : "rgba(78,205,196,0.25)",
+          display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22,
+        }}>
+          {isPast ? "📅" : "⏰"}
+        </div>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontSize: 10, fontWeight: 800, color: isPast ? C.accentPurple : C.accentTeal, textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 3px", fontFamily: FB }}>
+            {isPast ? "Did you attend?" : "Upcoming class"}
+          </p>
+          <p style={{ fontSize: 15, fontWeight: 700, color: C.textPri, margin: "0 0 2px", fontFamily: FB }}>{event.title}</p>
+          {studioName !== event.title && (
+            <p style={{ fontSize: 12, color: C.textSec, margin: "0 0 2px", fontFamily: FB }}>📍 {studioName}</p>
+          )}
+          <p style={{ fontSize: 11, color: C.textSec, margin: "0 0 12px", fontFamily: FB }}>
+            {dateLabel} {timeLabel && `· ${timeLabel}`}
+          </p>
+
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {isPast ? (
+              <>
+                <button onClick={() => onLog(event)} style={{
+                  background: C.gradientPrimary, color: "#fff", border: "none",
+                  borderRadius: 100, padding: "8px 16px", fontSize: 12, fontWeight: 800,
+                  cursor: "pointer", fontFamily: FB, boxShadow: C.shadowPurple,
+                }}>Yes, log it →</button>
+                <button onClick={() => onDismiss(event.id)} style={{
+                  background: "transparent", color: C.textSec,
+                  border: `1px solid ${C.border}`, borderRadius: 100,
+                  padding: "8px 14px", fontSize: 12, fontWeight: 600,
+                  cursor: "pointer", fontFamily: FB,
+                }}>Skip</button>
+                <button onClick={() => onIgnore(event.id)} style={{
+                  background: "transparent", color: C.textTer,
+                  border: "none", padding: "8px 0", fontSize: 11,
+                  cursor: "pointer", fontFamily: FB,
+                }}>Not Pilates</button>
+              </>
+            ) : (
+              <button onClick={() => onDismiss(event.id)} style={{
+                background: "transparent", color: C.textSec,
+                border: `1px solid ${C.border}`, borderRadius: 100,
+                padding: "7px 14px", fontSize: 12, fontWeight: 600,
+                cursor: "pointer", fontFamily: FB,
+              }}>Dismiss</button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ChallengeSpotlight({ challenges, logs, joinChallenge, showToast }) {
   const { C } = useTheme();
 
@@ -735,7 +872,7 @@ function QuickLogModal({ open, onClose, prefillStudio, recentLogs, showToast, on
                       onMouseLeave={e => e.currentTarget.style.background = "none"}>
                       {s.heroPhoto
                         ? <img src={s.heroPhoto} alt="" style={{ width: 32, height: 32, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />
-                        : <div style={{ width: 32, height: 32, borderRadius: 8, background: C.purpleDim, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>🪷</div>
+                        : <div style={{ width: 32, height: 32, borderRadius: 8, background: C.purpleDim, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>{getStudioIcon(s)}</div>
                       }
                       <div style={{ minWidth: 0, flex: 1 }}>
                         <p style={{ fontSize: 13, fontWeight: 700, color: C.textPri, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: FB }}>{s.name}</p>
@@ -951,7 +1088,7 @@ function NearbyStudios({ userCoords, onSelectStudio, setSelectedStudio, showToas
       <>
         <SL style={{ marginTop: 4 }}>Studios near you</SL>
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 18, padding: "18px 16px", marginBottom: 10, textAlign: "center" }}>
-          <p style={{ fontSize: 13, color: C.textSec }}>🔍 Finding Pilates studios near you…</p>
+          <p style={{ fontSize: 13, color: C.textSec }}>{getLoadingMessage()}</p>
         </div>
       </>
     );
@@ -980,7 +1117,7 @@ function NearbyStudios({ userCoords, onSelectStudio, setSelectedStudio, showToas
             <div style={{ padding: "12px 14px" }}>
               {!s.heroPhoto && (
                 <p style={{ fontSize: 14, fontWeight: 700, color: C.textPri, margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  🪷 {s.name}
+                  {getStudioIcon(s)} {s.name}
                 </p>
               )}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1028,7 +1165,7 @@ function NearbyStudios({ userCoords, onSelectStudio, setSelectedStudio, showToas
 /* ══════════════════════════════════════════════════════════════════════════
    HOME
 ══════════════════════════════════════════════════════════════════════════ */
-function HomeScreen({ logs, setTab, setLogPrefill, challenges, joinChallenge, user, userProfile, detectedCity, userCoords, gpsDetected, gpsScanning, gpsDismiss, hkConnected, hkConnect, hkSyncing, showToast, setSelectedStudio, onQuickLog }) {
+function HomeScreen({ logs, setTab, setLogPrefill, challenges, joinChallenge, user, userProfile, detectedCity, userCoords, gpsDetected, gpsScanning, gpsDismiss, hkConnected, hkConnect, hkSyncing, showToast, setSelectedStudio, onQuickLog, calendarPending, onCalendarLog, onCalendarDismiss, onCalendarIgnore }) {
   const { C } = useTheme();
   const stats = getStats(logs);
   const hour = new Date().getHours();
@@ -1039,6 +1176,7 @@ function HomeScreen({ logs, setTab, setLogPrefill, challenges, joinChallenge, us
   const FILTERS = ["All", "Reformer", "Mat", "Tower", "Private", "Hot"];
   const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - weekStart.getDay());
   const weeklyCount = logs.filter(l => l.date && new Date(l.date) >= weekStart).length;
+  const dailyQuote = getDailyQuote();
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
@@ -1140,6 +1278,27 @@ function HomeScreen({ logs, setTab, setLogPrefill, challenges, joinChallenge, us
 
         <SmartClassPrompt logs={logs} setTab={setTab} setLogPrefill={setLogPrefill} C={C} />
 
+        {/* Daily motivational quote */}
+        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 18, padding: "14px 16px", marginBottom: 16 }}>
+          <p style={{ fontSize: 10, fontWeight: 800, color: C.textTer, letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 6px", fontFamily: FB }}>Daily inspiration</p>
+          <p style={{ fontSize: 13, color: C.textPri, lineHeight: 1.6, margin: "0 0 4px", fontFamily: FB, fontStyle: "italic" }}>
+            "{dailyQuote.quote}"
+          </p>
+          <p style={{ fontSize: 10, color: C.textTer, margin: 0, fontFamily: FB }}>— {dailyQuote.author}</p>
+        </div>
+
+        {/* Calendar event cards (detected upcoming / past classes) */}
+        {calendarPending?.length > 0 && calendarPending.map(event => (
+          <CalendarEventCard
+            key={event.id}
+            event={event}
+            onLog={onCalendarLog}
+            onDismiss={onCalendarDismiss}
+            onIgnore={onCalendarIgnore}
+            C={C}
+          />
+        ))}
+
         {/* Challenges section */}
         {allChallenges.length > 0 && (
           <div style={{ marginBottom: 24 }}>
@@ -1194,10 +1353,10 @@ function HomeScreen({ logs, setTab, setLogPrefill, challenges, joinChallenge, us
             </h3>
           </div>
           {logs.length === 0 ? (
-            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 22, padding: "36px 20px", textAlign: "center" }}>
-              <div style={{ fontSize: 52, marginBottom: 12 }}>🪷</div>
-              <p style={{ fontSize: 16, fontWeight: 800, color: C.textPri, margin: "0 0 6px", fontFamily: FB }}>No classes yet</p>
-              <p style={{ fontSize: 13, color: C.textSec, margin: "0 0 18px", fontFamily: FB }}>Start your Pilates journey today</p>
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 22, padding: "40px 24px", textAlign: "center" }}>
+              <div style={{ fontSize: 56, marginBottom: 12 }}>🦋</div>
+              <p style={{ fontSize: 17, fontWeight: 800, color: C.textPri, margin: "0 0 8px", fontFamily: FB }}>Ready to start your Pilates journey?</p>
+              <p style={{ fontSize: 13, color: C.textSec, margin: "0 0 20px", lineHeight: 1.5, fontFamily: FB }}>Log your first class and start building your passport to studios around the world.</p>
               <Btn gradient label="Log your first class →" onClick={() => setTab("log")} style={{ justifyContent: "center" }} />
             </div>
           ) : logs.slice(0, 5).map((log, i) => {
@@ -1205,9 +1364,10 @@ function HomeScreen({ logs, setTab, setLogPrefill, challenges, joinChallenge, us
             const col = cols[i % 5];
             const typeBgs   = { coral: C.redDim,    purple: C.purpleDim, teal: C.tealDim,   lime: C.limeDim };
             const typeTexts = { coral: C.accent,    purple: C.accentPurple, teal: C.accentTeal, lime: C.lime };
+            const icon = getStudioIcon({ name: log.studio || log.studio_name_manual, tags: [log.type || log.class_type] });
             return (
               <div key={log.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 18, padding: "14px 16px", marginBottom: 10, display: "flex", gap: 14, alignItems: "center" }}>
-                <div style={{ width: 46, height: 46, borderRadius: 14, background: typeBgs[col], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>🪷</div>
+                <div style={{ width: 46, height: 46, borderRadius: 14, background: typeBgs[col], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{icon}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 14, fontWeight: 700, color: C.textPri, margin: "0 0 3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: FB }}>{log.studio || log.studio_name_manual}</p>
                   <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -1557,15 +1717,15 @@ function ExploreScreen({ logs, savedStudios, savedStudiosCache, toggleSave, setS
           {savedStudios.length === 0 ? (
             <div style={{ textAlign: "center", padding: "56px 20px" }}>
               <p style={{ fontSize: 40, marginBottom: 10 }}>♡</p>
-              <p style={{ fontSize: 15, color: C.textSec, fontWeight: 600 }}>No saved studios yet.</p>
-              <p style={{ fontSize: 12, color: C.textTer, marginTop: 4 }}>Tap ♡ on any studio to save it.</p>
+              <p style={{ fontSize: 15, fontWeight: 800, color: C.textPri, margin: "0 0 6px", fontFamily: FB }}>Save studios you'd love to visit</p>
+              <p style={{ fontSize: 12, color: C.textSec, marginTop: 4, fontFamily: FB }}>Tap the ♡ heart on any studio to save it to your list.</p>
             </div>
           ) : (savedStudiosCache || []).filter(s => savedStudios.includes(s.id)).map(s => (
             <Card key={s.id} onClick={() => setSelectedStudio(s)}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 {s.heroPhoto
                   ? <img src={s.heroPhoto} alt={s.name} style={{ width: 44, height: 44, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />
-                  : <span style={{ fontSize: 26, flexShrink: 0 }}>{s.hero || "🪷"}</span>
+                  : <span style={{ fontSize: 26, flexShrink: 0 }}>{getStudioIcon(s)}</span>
                 }
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 14, fontWeight: 700, color: C.textPri, margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</p>
@@ -1784,7 +1944,7 @@ function StudioDetail({ studio, logs, onBack, savedStudios, toggleSave, setTab, 
           />
         ) : (
           <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 80 }}>
-            {s.hero || s.hero_emoji || "🪷"}
+            {getStudioIcon(s)}
           </div>
         )}
         {/* Dark gradient overlay so buttons are readable */}
@@ -2045,6 +2205,11 @@ function LogScreen({ logs, setLogs, prefill, setPrefill, hkConnected, hkConnect,
     } else if (prefill?.studioId) {
       const s = STUDIOS_SEED.find(x => x.id === prefill.studioId);
       if (s) { setStudio(s); setSS(s.name); }
+    } else if (prefill?.name) {
+      // Name-only prefill (from calendar detection)
+      setSS(prefill.name);
+      if (prefill.date) setDate(prefill.date);
+      if (prefill.time) setTime(prefill.time);
     }
   }, [prefill]);
 
@@ -2591,7 +2756,7 @@ function InsightsModal({ logs, onClose }) {
 /* ══════════════════════════════════════════════════════════════════════════
    PROFILE — fully wired
 ══════════════════════════════════════════════════════════════════════════ */
-function ProfileScreen({ logs, savedStudios, savedStudiosCache, challenges, joinChallenge, leaveChallenge, hkConnected, hkConnect, hkSyncing, hkWorkouts, user, userProfile, detectedCity, showToast, notifications }) {
+function ProfileScreen({ logs, savedStudios, savedStudiosCache, challenges, joinChallenge, leaveChallenge, hkConnected, hkConnect, hkSyncing, hkWorkouts, user, userProfile, detectedCity, showToast, notifications, calSyncEnabled, calPermission, calCalendars, calKeywords, calRequestPermission, calToggleSync, calSaveKeywords, calFetchEvents }) {
   const { C, dark, toggle } = useTheme();
   const stats = getStats(logs);
   const { badges: allBadgesFromHook, evaluateBadges } = useBadges(stats);
@@ -2779,7 +2944,7 @@ function ProfileScreen({ logs, savedStudios, savedStudiosCache, challenges, join
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     {s.heroPhoto
                       ? <img src={s.heroPhoto} alt={s.name} style={{ width: 44, height: 44, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />
-                      : <span style={{ fontSize: 26, flexShrink: 0 }}>{s.hero || "🪷"}</span>
+                      : <span style={{ fontSize: 26, flexShrink: 0 }}>{getStudioIcon(s)}</span>
                     }
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: 14, fontWeight: 700, color: C.textPri, margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</p>
@@ -2856,6 +3021,57 @@ function ProfileScreen({ logs, savedStudios, savedStudiosCache, challenges, join
             )}
           </Card>
 
+          {/* ── Calendar sync ── */}
+          <SL style={{ marginTop: 16 }}>Calendar</SL>
+          <Card style={{ padding: "14px", marginBottom: 10 }}>
+            <Toggle
+              on={calSyncEnabled}
+              onClick={() => calToggleSync(!calSyncEnabled)}
+              label="📅 Sync calendar events"
+            />
+            <p style={{ fontSize: 11, color: C.textTer, margin: "8px 0 10px", lineHeight: 1.5 }}>
+              Auto-detect Pilates bookings from your Google Calendar and prompt you to log them.
+            </p>
+            {!calSyncEnabled && calPermission !== "granted" ? (
+              <button
+                onClick={async () => {
+                  const ok = await calRequestPermission();
+                  if (ok) showToast("Calendar connected! 📅");
+                  else showToast("Calendar permission denied.");
+                }}
+                style={{ background: C.gradientTeal, color: "#fff", border: "none", borderRadius: 100, padding: "9px 20px", fontSize: 12, fontWeight: 800, cursor: "pointer", fontFamily: FB, boxShadow: C.shadowTeal }}
+              >
+                Connect Google Calendar →
+              </button>
+            ) : calSyncEnabled ? (
+              <div>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
+                  <span style={{ fontSize: 11, color: C.green, fontWeight: 700, fontFamily: FB }}>✓ Connected</span>
+                  <button onClick={() => calFetchEvents()} style={{ background: "transparent", border: `1px solid ${C.border}`, borderRadius: 8, padding: "4px 10px", fontSize: 11, color: C.textSec, cursor: "pointer", fontFamily: FB }}>
+                    Sync now
+                  </button>
+                </div>
+                {calCalendars.length > 0 && (
+                  <div style={{ marginBottom: 8 }}>
+                    <p style={{ fontSize: 11, color: C.textTer, margin: "0 0 6px", fontFamily: FB }}>Calendars ({calCalendars.length})</p>
+                    {calCalendars.slice(0, 4).map(cal => (
+                      <div key={cal.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: `1px solid ${C.border}` }}>
+                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: cal.primary ? C.accentTeal : C.accentPurple, flexShrink: 0 }} />
+                        <span style={{ fontSize: 12, color: C.textPri, fontFamily: FB }}>{cal.name}</span>
+                        {cal.primary && <span style={{ fontSize: 9, color: C.accentTeal, fontWeight: 800, fontFamily: FB }}>PRIMARY</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : null}
+            {!import.meta.env.VITE_GOOGLE_CALENDAR_CLIENT_ID && (
+              <p style={{ fontSize: 10, color: C.accentCoral || C.accent, margin: "8px 0 0", fontFamily: FB, lineHeight: 1.5 }}>
+                ⚠️ Add <strong>VITE_GOOGLE_CALENDAR_CLIENT_ID</strong> to your Vercel env vars to enable this feature.
+              </p>
+            )}
+          </Card>
+
           <SL style={{ marginTop: 12 }}>Permissions</SL>
           {[["📍", "Location", "Always on", true], ["⌚", "Apple Health", hkConnected ? "Connected" : "Off", hkConnected], ["🖼️", "Photos", "Enabled", true]].map(([icon, label, value, on]) => (
             <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "13px 0", borderBottom: `1px solid ${C.border}` }}>
@@ -2901,6 +3117,37 @@ export default function App({ user }) {
 
   // Quick Log modal state
   const [quickLogOpen, setQuickLogOpen] = useState(false);
+
+  // Calendar sync
+  const {
+    pendingDetections: calendarPending,
+    syncEnabled: calSyncEnabled,
+    permission: calPermission,
+    calendars: calCalendars,
+    customKeywords: calKeywords,
+    requestPermission: calRequestPermission,
+    dismissDetection: calDismiss,
+    ignoreEvent: calIgnore,
+    toggleSync: calToggleSync,
+    saveCustomKeywords: calSaveKeywords,
+    fetchEvents: calFetchEvents,
+  } = useCalendarSync();
+
+  // Handle "Yes, log it" from calendar detection card
+  const handleCalendarLog = useCallback((event) => {
+    const studioName = event.location?.split(",")?.[0] || event.title;
+    setLogPrefill({
+      name: studioName,
+      studioId: null,
+      date: event.start?.toISOString().slice(0, 10),
+      time: event.start?.toTimeString().slice(0, 5),
+      source: "calendar",
+    });
+    calDismiss(event.id);
+    setSelectedStudio(null);
+    setSelectedUser(null);
+    setTab("log");
+  }, [calDismiss]);
 
   // Push notifications
   const notifications = useNotifications();
@@ -3319,13 +3566,13 @@ export default function App({ user }) {
     </ThemeProvider>
   );
 
-  const sharedProps = { logs, savedStudios, savedStudiosCache, toggleSave, hkConnected, hkConnect, hkSyncing, hkWorkouts, challenges, joinChallenge, leaveChallenge, communityUsers, setCommunityUsers, showToast, user, userProfile, detectedCity, userCoords, appBadges, onClassLogged, notifications, setSelectedStudio };
+  const sharedProps = { logs, savedStudios, savedStudiosCache, toggleSave, hkConnected, hkConnect, hkSyncing, hkWorkouts, challenges, joinChallenge, leaveChallenge, communityUsers, setCommunityUsers, showToast, user, userProfile, detectedCity, userCoords, appBadges, onClassLogged, notifications, setSelectedStudio, calSyncEnabled, calPermission, calCalendars, calKeywords, calRequestPermission, calToggleSync, calSaveKeywords, calFetchEvents };
 
   const renderScreen = () => {
     if (selectedUser) return <PublicProfileScreen user={selectedUser} onBack={() => setSelectedUser(null)} setCommunityUsers={setCommunityUsers} />;
     if (selectedStudio) return <StudioDetail studio={selectedStudio} logs={logs} onBack={() => setSelectedStudio(null)} savedStudios={savedStudios} toggleSave={toggleSave} setTab={handleSetTab} setLogPrefill={setLogPrefill} showToast={showToast} />;
     switch (tab) {
-      case "home": return <HomeScreen {...sharedProps} setTab={handleSetTab} setLogPrefill={setLogPrefill} gpsDetected={gpsDetected} gpsScanning={gpsScanning} gpsDismiss={() => { setGpsDetected(null); setGpsDismissed(true); }} setSelectedStudio={setSelectedStudio} onQuickLog={() => setQuickLogOpen(true)} />;
+      case "home": return <HomeScreen {...sharedProps} setTab={handleSetTab} setLogPrefill={setLogPrefill} gpsDetected={gpsDetected} gpsScanning={gpsScanning} gpsDismiss={() => { setGpsDetected(null); setGpsDismissed(true); }} setSelectedStudio={setSelectedStudio} onQuickLog={() => setQuickLogOpen(true)} calendarPending={calendarPending} onCalendarLog={handleCalendarLog} onCalendarDismiss={calDismiss} onCalendarIgnore={calIgnore} />;
       case "explore": return <ExploreScreen {...sharedProps} setSelectedStudio={setSelectedStudio} setSelectedUser={setSelectedUser} userCoords={userCoords} detectedCity={detectedCity} />;
       case "log": return <LogScreen logs={logs} setLogs={setLogs} prefill={logPrefill} setPrefill={setLogPrefill} hkConnected={hkConnected} hkConnect={hkConnect} hkSyncing={hkSyncing} hkWorkouts={hkWorkouts} showToast={showToast} detectedCity={detectedCity} onClassLogged={onClassLogged} notifications={notifications} />;
       case "passport": return <PassportScreen logs={logs} />;
