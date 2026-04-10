@@ -192,14 +192,20 @@ const NAV = [{ id: "home", label: "Home", icon: "⌂" }, { id: "explore", label:
 
 /* ── stats helper ── */
 function getStats(logs) {
-  // Count unique studios using all possible identifiers
-  const studioKeys = logs.map(l =>
-    l.google_place_id || l.studioId || l.studio_id ||
-    l.studio_name_manual || l.studio || null
-  ).filter(Boolean);
+  // Count unique studios — check ALL possible fields a log might use
+  const studioKeys = logs.map(l => {
+    // Priority: google_place_id > studio_id > studio_name_manual > studio name
+    const key = l.google_place_id ||
+      (l.studio_id && String(l.studio_id)) ||
+      l.studio_name_manual ||
+      l.studio ||
+      null;
+    return key ? String(key).trim().toLowerCase() : null;
+  }).filter(Boolean);
   const studios = [...new Set(studioKeys)];
-  const cities = [...new Set(logs.map(l => l.city).filter(Boolean))];
-  const countries = [...new Set(logs.map(l => l.country).filter(Boolean))];
+  // Cities and countries — normalize case
+  const cities = [...new Set(logs.map(l => (l.city || "").trim().toLowerCase()).filter(Boolean))];
+  const countries = [...new Set(logs.map(l => (l.country || "").trim().toLowerCase()).filter(Boolean))];
   const photos = logs.reduce((a, l) => a + (l.photos?.length || 0), 0);
   const earlyClasses = logs.filter(l => parseInt(l.time || l.start_time || "0") < 9).length;
   const totalMin = logs.reduce((a, l) => a + (l.duration || l.duration_minutes || 0), 0);
@@ -747,13 +753,25 @@ function ExploreScreen({ logs, savedStudios, toggleSave, setSelectedStudio, comm
       supabase.from("studios").select("*").order("avg_rating", { ascending: false }).limit(50)
         .then(({ data }) => {
           if (data && data.length > 0) return data.map(ds => ({
-            id: ds.id, name: ds.name, address: ds.address || "",
-            city: ds.city || "", country: ds.country || "",
-            rating: ds.avg_rating || 0, reviews: ds.review_count || 0,
-            tags: ds.class_types || [], types: ds.class_types || [],
-            lat: ds.latitude, lng: ds.longitude,
-            verified: ds.is_verified || false, hero: ds.hero_emoji || "🪷",
-            vibe: "", website: ds.website || "", phone: ds.phone || "",
+            id: ds.id,
+            google_place_id: ds.google_place_id || null,
+            name: ds.name || "Unknown Studio",
+            address: ds.address || "",
+            city: ds.city || "",
+            country: ds.country || "",
+            rating: ds.avg_rating || ds.rating || 0,
+            reviews: ds.review_count || ds.reviews || 0,
+            tags: ds.class_types || ds.tags || [],
+            types: ds.class_types || ds.types || [],
+            lat: ds.latitude || ds.lat || null,
+            lng: ds.longitude || ds.lng || null,
+            verified: ds.is_verified || false,
+            hero: ds.hero_emoji || "🪷",
+            heroPhoto: ds.hero_photo || null,
+            vibe: ds.description || "",
+            website: ds.website || "",
+            phone: ds.phone || "",
+            distance: "",
           }));
           return [];
         }).catch(() => [])
@@ -783,25 +801,20 @@ function ExploreScreen({ logs, savedStudios, toggleSave, setSelectedStudio, comm
     }).finally(() => setLoadingStudios(false));
   }, [userCoords]);
 
-  // Merge seed + DB + places search results (deduplicated by name)
+  // Merge dbStudios (already mapped) + placesResults, deduplicated by name
   const allStudios = (() => {
-    const merged = [...STUDIOS_SEED];
-    const addIfNew = (ds, source) => {
-      const exists = merged.some(s =>
-        s.name.toLowerCase() === (ds.name || "").toLowerCase()
-      );
-      if (!exists) merged.push(ds);
+    const seen = new Set();
+    const merged = [];
+    const addIfNew = (s) => {
+      const key = (s.name || "").toLowerCase().trim();
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      merged.push(s);
     };
-    dbStudios.forEach(ds => addIfNew({
-      id: ds.id, name: ds.name, address: ds.address || "",
-      city: ds.city || "", country: ds.country || "",
-      rating: ds.avg_rating || 0, reviews: ds.review_count || 0,
-      tags: ds.class_types || [], types: ds.class_types || [],
-      lat: ds.latitude || null, lng: ds.longitude || null,
-      verified: ds.is_verified || false, hero: ds.hero_emoji || "🪷",
-      vibe: "", website: ds.website || "", phone: ds.phone || "", distance: "",
-    }));
-    placesResults.forEach(ds => addIfNew(ds));
+    // dbStudios already have correct shape from the fetch useEffect
+    dbStudios.forEach(s => addIfNew(s));
+    // placesResults from search box
+    placesResults.forEach(s => addIfNew(s));
     return merged;
   })();
 
@@ -866,16 +879,24 @@ function ExploreScreen({ logs, savedStudios, toggleSave, setSelectedStudio, comm
           </div>
           {mapView ? <MapView studios={filtered} visitedIds={visitedIds} onSelect={setSelectedStudio} userCoords={userCoords} /> : (
             <div style={{ padding: "10px 20px" }}>
+              {loadingStudios && (
+                <div style={{ textAlign: "center", padding: "40px 20px" }}>
+                  <p style={{ fontSize: 32, marginBottom: 8 }}>🔍</p>
+                  <p style={{ fontSize: 14, color: C.textSec }}>Finding studios near you…</p>
+                </div>
+              )}
               {filtered.length === 0 && !loadingStudios && (
                 <div style={{ textAlign: "center", padding: "40px 20px" }}>
-                  <p style={{ fontSize: 32, marginBottom: 12 }}>🔍</p>
+                  <p style={{ fontSize: 32, marginBottom: 12 }}>📍</p>
                   <p style={{ fontSize: 15, fontWeight: 700, color: C.textPri, margin: "0 0 8px" }}>
-                    {search ? `No studios found for "${search}"` : "No studios yet"}
+                    {search ? `No studios found for "${search}"` : "No studios found"}
                   </p>
                   <p style={{ fontSize: 13, color: C.textSec, lineHeight: 1.6, margin: "0 0 16px" }}>
                     {search
-                      ? "Try a different search term, or add the studio manually when logging a class."
-                      : "Enable location to see nearby studios, or search by name above."}
+                      ? "Try searching just the studio name or city — e.g. "pilates phoenix""
+                      : !userCoords
+                        ? "Allow location access so we can find real Pilates studios near you."
+                        : "No studios found in your area. Try searching by name above."}
                   </p>
                 </div>
               )}
@@ -1010,12 +1031,22 @@ function ExploreScreen({ logs, savedStudios, toggleSave, setSelectedStudio, comm
 function StudioReviews({ studioId, googlePlaceId, C }) {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const isGoogleStudio = !studioId || String(studioId).startsWith("Ch") || (googlePlaceId && String(googlePlaceId).startsWith("Ch"));
 
   useEffect(() => {
-    if (!studioId || String(studioId).startsWith("Ch")) {
-      // Google Places studio — no Supabase reviews yet
-      setReviews([]);
-      setLoading(false);
+    if (isGoogleStudio) {
+      // Google Places studio — fetch from Supabase by google_place_id if possible
+      if (googlePlaceId) {
+        supabase.from("reviews").select("*, users(display_name)")
+          .eq("google_place_id", googlePlaceId)
+          .eq("moderation_status", "approved")
+          .order("created_at", { ascending: false })
+          .then(({ data }) => { setReviews(data || []); })
+          .finally(() => setLoading(false));
+      } else {
+        setReviews([]);
+        setLoading(false);
+      }
       return;
     }
     supabase
@@ -1033,7 +1064,16 @@ function StudioReviews({ studioId, googlePlaceId, C }) {
   if (reviews.length === 0) return (
     <div style={{ textAlign: "center", padding: "32px 0" }}>
       <p style={{ fontSize: 32, marginBottom: 8 }}>⭐</p>
-      <p style={{ fontSize: 14, color: C.textSec }}>No reviews yet. Be the first!</p>
+      <p style={{ fontSize: 14, color: C.textSec, marginBottom: 12 }}>No in-app reviews yet. Be the first!</p>
+      {isGoogleStudio && googlePlaceId && (
+        <a
+          href={`https://www.google.com/maps/search/?api=1&query_place_id=${googlePlaceId}`}
+          target="_blank" rel="noopener noreferrer"
+          style={{ fontSize: 12, color: C.accent, fontWeight: 700, textDecoration: "none" }}
+        >
+          See Google reviews →
+        </a>
+      )}
     </div>
   );
 
@@ -2143,15 +2183,16 @@ export default function App({ user }) {
 
   // Fetch real public users from Supabase
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
     supabase
       .from("users")
       .select("id, display_name, bio, profile_photo_url, visibility")
       .eq("visibility", "public")
       .neq("id", user.id)
       .limit(20)
-      .then(({ data }) => {
-        if (data && data.length > 0) {
+      .then(({ data, error }) => {
+        if (error) { console.error("[Community] fetch error:", error); return; }
+        if (data) {
           setCommunityUsers(data.map(u => ({
             id: u.id,
             name: u.display_name || "Pilates Lover",
@@ -2166,7 +2207,7 @@ export default function App({ user }) {
           })));
         }
       });
-  }, [user]);
+  }, [user?.id]);
   const [selectedStudio, setSelectedStudio] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [logPrefill, setLogPrefill] = useState(null);
@@ -2249,20 +2290,22 @@ export default function App({ user }) {
     return () => window.removeEventListener("pp_coords", handleManualCoords);
   }, [reverseGeocode]);
 
-  // Fetch profile when user changes (user comes from AuthContext)
+  // Fetch profile + logs when user changes (user comes as prop from main.jsx)
   useEffect(() => {
-    if (user) {
+    if (user?.id) {
       fetchProfile(user);
-    } else {
+    } else if (user === null) {
+      // Explicitly signed out
       setUserProfile(null);
       setLogs([]);
       setSavedStudios([]);
     }
+    // if user is undefined, wait — still loading
   }, [user, fetchProfile]);
 
   // Fetch logs from Supabase
   useEffect(() => {
-    if (!user) { setLogsLoading(false); return; }
+    if (!user?.id) { setLogsLoading(false); return; }
     setLogsLoading(true);
     supabase.from("class_logs").select("*").eq("user_id", user.id).order("date", { ascending: false }).order("start_time", { ascending: false })
       .then(({ data }) => {
@@ -2286,10 +2329,10 @@ export default function App({ user }) {
 
   // Fetch saved studios
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
     supabase.from("saved_studios").select("studio_id").eq("user_id", user.id)
       .then(({ data }) => { if (data) setSavedStudios(data.map(s => s.studio_id)); });
-  }, [user]);
+  }, [user?.id]);
 
   // Haversine distance between two lat/lng points in metres
   const haversineMetres = (lat1, lng1, lat2, lng2) => {
@@ -2486,7 +2529,7 @@ export default function App({ user }) {
     </ThemeProvider>
   );
 
-  const sharedProps = { logs, savedStudios, toggleSave, hkConnected, hkConnect, hkSyncing, hkWorkouts, challenges, joinChallenge, leaveChallenge, communityUsers, setCommunityUsers, showToast, user, userProfile, detectedCity, userCoords, appBadges, onClassLogged, notifications };
+  const sharedProps = { logs, savedStudios, toggleSave, hkConnected, hkConnect, hkSyncing, hkWorkouts, challenges, joinChallenge, leaveChallenge, communityUsers, setCommunityUsers, showToast, user, userProfile, detectedCity, userCoords, appBadges, onClassLogged, notifications, setSelectedStudio };
 
   const renderScreen = () => {
     if (selectedUser) return <PublicProfileScreen user={selectedUser} onBack={() => setSelectedUser(null)} setCommunityUsers={setCommunityUsers} />;
