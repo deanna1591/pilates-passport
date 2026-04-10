@@ -2120,7 +2120,7 @@ export default function App() {
   const [onboarded, setOnboarded] = useState(() => !!localStorage.getItem("pp_onboarded"));
   const [tab, setTab] = useState("home");
   const [logs, setLogs] = useState([]);
-  const [logsLoading, setLogsLoading] = useState(true);
+  const [logsLoading, setLogsLoading] = useState(false);
   const [savedStudios, setSavedStudios] = useState([]);
   // Push notifications
   const notifications = useNotifications();
@@ -2270,7 +2270,7 @@ export default function App() {
 
   // Fetch logs from Supabase
   useEffect(() => {
-    if (!user) return;
+    if (!user) { setLogsLoading(false); return; }
     setLogsLoading(true);
     supabase.from("class_logs").select("*").eq("user_id", user.id).order("date", { ascending: false }).order("start_time", { ascending: false })
       .then(({ data }) => {
