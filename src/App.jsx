@@ -141,7 +141,7 @@ function ThemeProvider({ children }) {
   const [dark, setDark] = useState(() => {
     const saved = localStorage.getItem("pp_theme");
     if (saved) return saved === "dark";
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    return true; // Always default to dark — system preference overridden
   });
   const C = dark ? DARK : LIGHT;
   const toggle = () => { setDark(d => { localStorage.setItem("pp_theme", !d ? "dark" : "light"); return !d; }); };
@@ -190,7 +190,9 @@ function GlobalStyles() {
         --sar: env(safe-area-inset-right, 0px);
       }
       /* Remove tap highlight on mobile */
-      * { -webkit-tap-highlight-color: transparent; }
+      * { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+      /* Prevent double-tap zoom */
+      button, a, input, select, textarea, [role="button"] { touch-action: manipulation; }
       /* Smooth momentum scrolling on iOS */
       .pp-scroll { -webkit-overflow-scrolling: touch; overflow-y: auto; }
       .pp-hscroll { -webkit-overflow-scrolling: touch; overflow-x: auto; scrollbar-width: none; }
@@ -648,8 +650,8 @@ function ClassDetailModal({ log, onClose, C }) {
         width: "100%", maxWidth: 420,
         background: C.surface, borderRadius: "28px 28px 0 0",
         zIndex: 961, boxShadow: "0 -16px 60px rgba(0,0,0,0.5)",
-        maxHeight: "88dvh", overflowY: "auto", WebkitOverflowScrolling: "touch",
-        paddingBottom: "calc(20px + var(--sab, 0px))",
+        maxHeight: "82dvh", overflowY: "auto", WebkitOverflowScrolling: "touch",
+        paddingBottom: "calc(80px + var(--sab, 0px))",
         animation: "slideUpModal 0.28s cubic-bezier(0.34,1.1,0.64,1)",
       }}>
         <style>{`@keyframes slideUpModal { from { transform:translateX(-50%) translateY(100%); } to { transform:translateX(-50%) translateY(0); } }`}</style>
@@ -673,7 +675,7 @@ function ClassDetailModal({ log, onClose, C }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
             {[
               { label: "Date",     value: dateLabel,                                              icon: "📅" },
-              { label: "Time",     value: log.time || log.start_time || "—",                      icon: "🕐" },
+              { label: "Time",     value: (() => { const t = log.time || log.start_time; if (!t || t === "—") return "—"; try { const [h, m] = t.split(":"); const hr = parseInt(h); return `${hr % 12 || 12}:${m} ${hr < 12 ? "AM" : "PM"}`; } catch { return t; } })(), icon: "🕐" },
               { label: "Duration", value: `${log.duration || log.duration_minutes || "—"} min`,   icon: "⏱️" },
               { label: "Location", value: [log.city, log.country].filter(Boolean).join(", ") || "—", icon: "📍" },
             ].map(({ label, value, icon: ic }) => (
@@ -1058,9 +1060,12 @@ function QuickLogModal({ open, onClose, prefillStudio, recentLogs, showToast, on
       <div style={{
         position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
         width: "100%", maxWidth: 420, background: C.surface,
-        borderRadius: "28px 28px 0 0", padding: "20px 22px 44px",
+        borderRadius: "28px 28px 0 0",
+        paddingTop: 20, paddingLeft: 22, paddingRight: 22,
+        paddingBottom: "calc(80px + var(--sab, 0px))",
         zIndex: 901, boxShadow: "0 -12px 48px rgba(0,0,0,0.5)",
-        animation: "fadeUp 0.22s ease", maxHeight: "90vh", overflowY: "auto",
+        animation: "fadeUp 0.22s ease", maxHeight: "82dvh", overflowY: "auto",
+        WebkitOverflowScrolling: "touch",
       }}>
         <div style={{ width: 36, height: 4, background: C.surfaceEl, borderRadius: 100, margin: "0 auto 20px" }} />
 
