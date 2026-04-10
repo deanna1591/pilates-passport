@@ -25,30 +25,90 @@ import { supabase } from "./lib/supabase";
    THEME SYSTEM — light & dark
 ══════════════════════════════════════════════════════════════════════════ */
 const DARK = {
-  bg:"#0F0F0F", surface:"#1A1A1A", surfaceHi:"#242424", surfaceEl:"#2E2E2E",
-  border:"rgba(255,255,255,0.08)", borderMd:"rgba(255,255,255,0.18)",
-  accent:"#E8714A", accentDim:"rgba(232,113,74,0.15)", accentDim2:"rgba(232,113,74,0.08)",
-  lime:"#C8E650", limeDim:"rgba(200,230,80,0.12)",
-  textPri:"#F5F0EB", textSec:"#9A9488", textTer:"#5E5A54",
-  green:"#5BAF7A", greenDim:"rgba(91,175,122,0.15)",
-  blue:"#6BA3D6", blueDim:"rgba(107,163,214,0.15)",
-  purple:"#A07DD6",
-  navBg:"rgba(10,10,10,0.97)",
-  inputBg:"#242424",
-  shadow:"0 4px 24px rgba(0,0,0,0.5)",
+  // Backgrounds
+  bg:         "#0A0A0F",
+  surface:    "#13131A",
+  surfaceHi:  "#1C1C26",
+  surfaceEl:  "#26263A",
+
+  // Gradients
+  gradientPrimary:   "linear-gradient(135deg, #7B35C1, #E8714A)",
+  gradientSecondary: "linear-gradient(135deg, #2D1B69, #7B35C1)",
+  gradientAccent:    "linear-gradient(135deg, #E8714A, #F5A07A)",
+  gradientCard:      "linear-gradient(135deg, rgba(123,53,193,0.15), rgba(232,113,74,0.08))",
+  gradientLime:      "linear-gradient(135deg, #8FB820, #C8E650)",
+
+  // Accents
+  accent:      "#E8714A",
+  accentDim:   "rgba(232,113,74,0.18)",
+  accentDim2:  "rgba(232,113,74,0.08)",
+  accentPurple:"#7B35C1",
+  purpleDim:   "rgba(123,53,193,0.18)",
+  lime:        "#C8E650",
+  limeDim:     "rgba(200,230,80,0.14)",
+
+  // Text
+  textPri: "#FFFFFF",
+  textSec: "#9090A8",
+  textTer: "#50506A",
+
+  // Borders
+  border:   "rgba(255,255,255,0.07)",
+  borderMd: "rgba(255,255,255,0.14)",
+
+  // Functional
+  green:    "#5BAF7A",
+  greenDim: "rgba(91,175,122,0.15)",
+  blue:     "#6BA3D6",
+  blueDim:  "rgba(107,163,214,0.15)",
+  purple:   "#A07DD6",
+
+  // UI
+  navBg:   "rgba(8,8,12,0.97)",
+  inputBg: "#1C1C26",
+  shadow:  "0 8px 40px rgba(0,0,0,0.6)",
+  shadowAccent: "0 8px 32px rgba(232,113,74,0.35)",
+  shadowPurple: "0 8px 32px rgba(123,53,193,0.35)",
 };
+
 const LIGHT = {
-  bg:"#FAF8F6", surface:"#FFFFFF", surfaceHi:"#F5F2EF", surfaceEl:"#EDE9E5",
-  border:"rgba(60,40,20,0.1)", borderMd:"rgba(60,40,20,0.22)",
-  accent:"#E8714A", accentDim:"rgba(232,113,74,0.12)", accentDim2:"rgba(232,113,74,0.06)",
-  lime:"#7A9A10", limeDim:"rgba(120,155,20,0.1)",
-  textPri:"#1E1410", textSec:"#7A6A5A", textTer:"#AFA090",
-  green:"#3A8A58", greenDim:"rgba(58,138,88,0.12)",
-  blue:"#2D6FA8", blueDim:"rgba(45,111,168,0.12)",
-  purple:"#7050B0",
-  navBg:"rgba(250,248,246,0.97)",
-  inputBg:"#F5F2EF",
-  shadow:"0 4px 20px rgba(0,0,0,0.1)",
+  bg:         "#F5F4FF",
+  surface:    "#FFFFFF",
+  surfaceHi:  "#F0EFF8",
+  surfaceEl:  "#E8E6F4",
+
+  gradientPrimary:   "linear-gradient(135deg, #7B35C1, #E8714A)",
+  gradientSecondary: "linear-gradient(135deg, #EDE8FF, #F8EDE8)",
+  gradientAccent:    "linear-gradient(135deg, #E8714A, #F5A07A)",
+  gradientCard:      "linear-gradient(135deg, rgba(123,53,193,0.08), rgba(232,113,74,0.05))",
+  gradientLime:      "linear-gradient(135deg, #8FB820, #C8E650)",
+
+  accent:      "#E8714A",
+  accentDim:   "rgba(232,113,74,0.12)",
+  accentDim2:  "rgba(232,113,74,0.06)",
+  accentPurple:"#7B35C1",
+  purpleDim:   "rgba(123,53,193,0.10)",
+  lime:        "#6A8A00",
+  limeDim:     "rgba(106,138,0,0.10)",
+
+  textPri: "#12121E",
+  textSec: "#6060808",
+  textTer: "#A0A0B8",
+
+  border:   "rgba(60,40,120,0.10)",
+  borderMd: "rgba(60,40,120,0.20)",
+
+  green:    "#3A8A58",
+  greenDim: "rgba(58,138,88,0.12)",
+  blue:     "#2D6FA8",
+  blueDim:  "rgba(45,111,168,0.12)",
+  purple:   "#7050B0",
+
+  navBg:   "rgba(245,244,255,0.97)",
+  inputBg: "#F0EFF8",
+  shadow:  "0 4px 20px rgba(60,40,120,0.12)",
+  shadowAccent: "0 4px 20px rgba(232,113,74,0.25)",
+  shadowPurple: "0 4px 20px rgba(123,53,193,0.20)",
 };
 
 const ThemeCtx = createContext({ C: DARK, dark: true, toggle: () => {} });
@@ -76,54 +136,94 @@ function Stars({ n = 5, size = 13 }) {
   return <span style={{ color: C.accent, fontSize: size, letterSpacing: 0.5 }}>{"★".repeat(Math.round(n))}{"☆".repeat(5 - Math.round(n))}</span>;
 }
 
+/* ── ProgressRing — circular progress indicator ── */
+function ProgressRing({ progress = 0, size = 52, strokeWidth = 4, color, children, label }) {
+  const { C } = useTheme();
+  const col = color || C.accent;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (Math.min(100, progress) / 100) * circumference;
+  return (
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ display: "block" }}>
+        <circle stroke="rgba(255,255,255,0.07)" fill="none" strokeWidth={strokeWidth} r={radius} cx={size / 2} cy={size / 2} />
+        <circle
+          stroke={col} fill="none" strokeWidth={strokeWidth} strokeLinecap="round"
+          r={radius} cx={size / 2} cy={size / 2}
+          strokeDasharray={circumference} strokeDashoffset={offset}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          style={{ transition: "stroke-dashoffset 0.6s cubic-bezier(0.4,0,0.2,1)" }}
+        />
+      </svg>
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        {children && <span style={{ fontSize: size * 0.28, fontWeight: 700, color: "#fff", lineHeight: 1, fontFamily: FB }}>{children}</span>}
+        {label && <span style={{ fontSize: size * 0.16, color: C.textSec, fontWeight: 600, fontFamily: FB, marginTop: 1 }}>{label}</span>}
+      </div>
+    </div>
+  );
+}
+
 function Pill({ label, active, onClick, style = {} }) {
   const { C } = useTheme();
   return (
     <button onClick={onClick} style={{
-      background: active ? C.accent : "transparent",
+      background: active ? C.gradientPrimary : "transparent",
       color: active ? "#fff" : C.textSec,
-      border: `1px solid ${active ? C.accent : C.border}`,
-      borderRadius: 100, padding: "5px 14px", fontSize: 11, fontWeight: 600,
+      border: `1px solid ${active ? "transparent" : C.border}`,
+      borderRadius: 100, padding: "6px 16px", fontSize: 11, fontWeight: 700,
       cursor: "pointer", whiteSpace: "nowrap", fontFamily: FB,
-      transition: "all 0.18s", letterSpacing: 0.3, ...style,
+      transition: "all 0.18s", letterSpacing: 0.4,
+      boxShadow: active ? C.shadowAccent : "none",
+      ...style,
     }}>{label}</button>
   );
 }
 
-function Card({ children, style = {}, onClick, accent, glow }) {
+function Card({ children, style = {}, onClick, accent, glow, gradient }) {
   const { C } = useTheme();
+  const bg = gradient ? C.gradientCard
+    : accent ? `linear-gradient(135deg,${C.accentDim},${C.accentDim2})`
+    : C.surface;
+  const border = accent ? "rgba(232,113,74,0.3)" : gradient ? "rgba(123,53,193,0.2)" : C.border;
   return (
     <div onClick={onClick} style={{
-      background: accent ? `linear-gradient(135deg,${C.accentDim},${C.accentDim2})` : C.surface,
-      border: `1px solid ${accent ? "rgba(232,113,74,0.3)" : C.border}`,
-      borderRadius: 18, padding: "16px", marginBottom: 10,
+      background: bg,
+      border: `1px solid ${border}`,
+      borderRadius: 20, padding: "16px", marginBottom: 10,
       cursor: onClick ? "pointer" : "default",
       transition: "transform 0.15s, box-shadow 0.15s",
-      boxShadow: glow ? `0 0 20px ${C.accentDim}` : "none", ...style,
+      boxShadow: glow ? C.shadowAccent : "none",
+      ...style,
     }}
       onMouseEnter={e => { if (onClick) { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = C.shadow; } }}
-      onMouseLeave={e => { if (onClick) { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = glow ? `0 0 20px ${C.accentDim}` : "none"; } }}>
+      onMouseLeave={e => { if (onClick) { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = glow ? C.shadowAccent : "none"; } }}>
       {children}
     </div>
   );
 }
 
-function Btn({ label, onClick, outline, ghost, small, full, style = {}, disabled, icon, loading }) {
+function Btn({ label, onClick, outline, ghost, small, full, style = {}, disabled, icon, loading, gradient }) {
   const { C } = useTheme();
+  const isPrimary = !ghost && !outline;
   return (
     <button onClick={onClick} disabled={disabled || loading} style={{
-      background: ghost ? "transparent" : outline ? "transparent" : C.accent,
+      background: ghost ? "transparent"
+        : outline ? "transparent"
+        : gradient ? C.gradientPrimary
+        : C.accent,
       color: ghost ? C.textSec : outline ? C.accent : "#fff",
-      border: `1.5px solid ${ghost ? C.border : C.accent}`,
-      borderRadius: 14, padding: small ? "8px 16px" : "13px 22px",
+      border: ghost ? `1.5px solid ${C.border}` : outline ? `1.5px solid ${C.accent}` : "none",
+      borderRadius: 14, padding: small ? "8px 18px" : "13px 24px",
       fontSize: small ? 12 : 14, fontWeight: 700,
       cursor: (disabled || loading) ? "not-allowed" : "pointer",
-      fontFamily: FB, letterSpacing: 0.3, opacity: (disabled || loading) ? 0.5 : 1,
+      fontFamily: FB, letterSpacing: 0.4, opacity: (disabled || loading) ? 0.5 : 1,
       transition: "all 0.15s", width: full ? "100%" : "auto",
-      display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, ...style,
+      display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
+      boxShadow: isPrimary && !ghost && !outline ? C.shadowAccent : "none",
+      ...style,
     }}
-      onMouseEnter={e => { if (!disabled && !loading) e.currentTarget.style.opacity = "0.82"; }}
-      onMouseLeave={e => { if (!disabled && !loading) e.currentTarget.style.opacity = "1"; }}>
+      onMouseEnter={e => { if (!disabled && !loading) { e.currentTarget.style.opacity = "0.85"; e.currentTarget.style.transform = "translateY(-1px)"; } }}
+      onMouseLeave={e => { if (!disabled && !loading) { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; } }}>
       {loading ? "…" : <>{icon && <span>{icon}</span>}{label}</>}
     </button>
   );
@@ -131,19 +231,21 @@ function Btn({ label, onClick, outline, ghost, small, full, style = {}, disabled
 
 function SL({ children, style = {} }) {
   const { C } = useTheme();
-  return <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: C.textTer, textTransform: "uppercase", margin: "0 0 10px", ...style }}>{children}</p>;
+  return <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", color: C.textTer, textTransform: "uppercase", margin: "0 0 10px", fontFamily: FB, ...style }}>{children}</p>;
 }
 
 function Inp({ placeholder, value, onChange, style = {}, multiline, type = "text" }) {
   const { C } = useTheme();
   const base = {
-    background: C.inputBg, border: `1px solid ${C.border}`, borderRadius: 12,
-    padding: "11px 14px", fontSize: 13, color: C.textPri, fontFamily: FB,
+    background: C.inputBg,
+    border: `1px solid ${C.border}`,
+    borderRadius: 14, padding: "12px 16px",
+    fontSize: 13, color: C.textPri, fontFamily: FB,
     width: "100%", outline: "none", resize: "none", boxSizing: "border-box",
-    transition: "border-color 0.15s", ...style,
+    transition: "border-color 0.15s, box-shadow 0.15s", ...style,
   };
-  const focus = e => e.target.style.borderColor = C.accent;
-  const blur = e => e.target.style.borderColor = C.border;
+  const focus = e => { e.target.style.borderColor = C.accentPurple; e.target.style.boxShadow = `0 0 0 3px ${C.purpleDim}`; };
+  const blur  = e => { e.target.style.borderColor = C.border; e.target.style.boxShadow = "none"; };
   return multiline
     ? <textarea rows={3} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={base} onFocus={focus} onBlur={blur} />
     : <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={base} onFocus={focus} onBlur={blur} />;
@@ -153,9 +255,14 @@ function Toggle({ on, onClick, label }) {
   const { C } = useTheme();
   return (
     <div onClick={onClick} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
-      {label && <span style={{ fontSize: 13, color: C.textPri, flex: 1 }}>{label}</span>}
-      <div style={{ width: 44, height: 24, borderRadius: 100, background: on ? C.accent : C.surfaceEl, border: `1px solid ${on ? C.accent : C.border}`, position: "relative", transition: "all 0.2s", flexShrink: 0 }}>
-        <div style={{ width: 18, height: 18, background: "#fff", borderRadius: "50%", position: "absolute", top: 2, left: on ? 22 : 2, transition: "left 0.2s" }} />
+      {label && <span style={{ fontSize: 13, color: C.textPri, flex: 1, fontFamily: FB }}>{label}</span>}
+      <div style={{
+        width: 46, height: 26, borderRadius: 100,
+        background: on ? C.gradientPrimary : C.surfaceEl,
+        border: `1px solid ${on ? "transparent" : C.border}`,
+        position: "relative", transition: "all 0.2s", flexShrink: 0,
+      }}>
+        <div style={{ width: 20, height: 20, background: "#fff", borderRadius: "50%", position: "absolute", top: 2, left: on ? 22 : 2, transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.3)" }} />
       </div>
     </div>
   );
@@ -168,10 +275,10 @@ function Toast({ msg, onClose }) {
   return (
     <div style={{
       position: "fixed", bottom: 96, left: "50%", transform: "translateX(-50%)",
-      background: C.accent, color: "#fff", borderRadius: 24, padding: "10px 20px",
-      fontSize: 13, fontWeight: 600, fontFamily: FB, zIndex: 999,
-      boxShadow: "0 4px 20px rgba(232,113,74,0.5)", whiteSpace: "nowrap",
-      animation: "fadeUp 0.2s ease",
+      background: C.gradientPrimary, color: "#fff", borderRadius: 100,
+      padding: "11px 22px", fontSize: 13, fontWeight: 700, fontFamily: FB,
+      zIndex: 999, boxShadow: C.shadowPurple, whiteSpace: "nowrap",
+      animation: "fadeUp 0.2s ease", letterSpacing: 0.3,
     }}>{msg}</div>
   );
 }
@@ -304,6 +411,138 @@ function MapView({ studios, visitedIds, onSelect, userCoords }) {
 /* ══════════════════════════════════════════════════════════════════════════
    QUICK LOG MODAL — one-tap class logging from home screen FAB
 ══════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════
+   BADGE CELEBRATION MODAL — full-screen confetti + badge reveal
+══════════════════════════════════════════════════════════════════════════ */
+function BadgeCelebrationModal({ badge, onClose }) {
+  const { C } = useTheme();
+  useEffect(() => {
+    if (!badge) return;
+    const t = setTimeout(onClose, 4000);
+    return () => clearTimeout(t);
+  }, [badge, onClose]);
+
+  if (!badge) return null;
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 1000,
+      background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      animation: "fadeUp 0.3s ease",
+    }} onClick={onClose}>
+      {/* Confetti burst — CSS-only dots */}
+      <style>{`
+        @keyframes confettiFly {
+          0%   { transform: translate(0,0) rotate(0deg); opacity: 1; }
+          100% { transform: translate(var(--tx), var(--ty)) rotate(720deg); opacity: 0; }
+        }
+        .confetti-dot { position: absolute; width: 8px; height: 8px; border-radius: 2px; animation: confettiFly 1.2s ease-out forwards; }
+      `}</style>
+      {[...Array(24)].map((_, i) => {
+        const angle = (i / 24) * 360;
+        const dist  = 80 + Math.random() * 120;
+        const tx    = Math.cos((angle * Math.PI) / 180) * dist;
+        const ty    = Math.sin((angle * Math.PI) / 180) * dist;
+        const colors = ["#E8714A","#C8E650","#6BA3D6","#A07DD6","#5BAF7A","#fff"];
+        return (
+          <div key={i} className="confetti-dot" style={{
+            background: colors[i % colors.length],
+            top: "50%", left: "50%",
+            "--tx": `${tx}px`, "--ty": `${ty}px`,
+            animationDelay: `${i * 0.03}s`,
+          }} />
+        );
+      })}
+
+      <div style={{
+        background: C.surface, borderRadius: 28, padding: "40px 32px",
+        textAlign: "center", maxWidth: 320, width: "90%",
+        boxShadow: `0 0 60px ${C.accentDim}`,
+        border: `1px solid rgba(232,113,74,0.3)`,
+        position: "relative", zIndex: 1,
+      }} onClick={e => e.stopPropagation()}>
+        <div style={{ fontSize: 72, marginBottom: 16, lineHeight: 1 }}>
+          {badge.icon_name || "🏅"}
+        </div>
+        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", color: C.accent, textTransform: "uppercase", margin: "0 0 8px" }}>Badge Unlocked</p>
+        <h2 style={{ fontFamily: FD, fontSize: 26, fontWeight: 700, color: C.textPri, margin: "0 0 10px" }}>{badge.name}</h2>
+        <p style={{ fontSize: 13, color: C.textSec, lineHeight: 1.65, margin: "0 0 24px" }}>
+          {badge.unlock_copy || badge.description || "Keep up the amazing practice!"}
+        </p>
+        <Btn label="Keep going ✦" onClick={onClose} style={{ justifyContent: "center" }} />
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CHALLENGE SPOTLIGHT — featured challenge card for Home screen
+══════════════════════════════════════════════════════════════════════════ */
+function ChallengeSpotlight({ challenges, logs, joinChallenge, showToast }) {
+  const { C } = useTheme();
+
+  // Pick the challenge with most participants, or first active one
+  const spotlight = challenges
+    ?.filter(c => c.active || c.is_active)
+    ?.sort((a, b) => (b.participant_count || 0) - (a.participant_count || 0))[0];
+
+  if (!spotlight) return null;
+
+  const isJoined   = spotlight.joined || spotlight.userProgress;
+  const progress   = spotlight.userProgress?.current_progress || spotlight.progress || 0;
+  const target     = spotlight.target_value || spotlight.target || 1;
+  const pct        = Math.min(100, (progress / target) * 100);
+  const endsLabel  = spotlight.ends_at
+    ? new Date(spotlight.ends_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    : spotlight.ends || "";
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <SL>Challenge spotlight</SL>
+      <div style={{
+        background: `linear-gradient(135deg, ${C.limeDim}, rgba(200,230,80,0.05))`,
+        border: `1px solid rgba(200,230,80,0.25)`,
+        borderRadius: 18, padding: "16px",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+          <div style={{ flex: 1, paddingRight: 12 }}>
+            <p style={{ fontSize: 15, fontWeight: 700, color: C.textPri, margin: "0 0 3px" }}>{spotlight.title}</p>
+            <p style={{ fontSize: 11, color: C.textSec, margin: 0 }}>
+              {spotlight.description || `Complete ${target} classes`}
+              {endsLabel ? ` · Ends ${endsLabel}` : ""}
+            </p>
+            {spotlight.participant_count > 0 && (
+              <p style={{ fontSize: 10, color: C.lime, fontWeight: 700, margin: "4px 0 0" }}>
+                🌿 {spotlight.participant_count} participants
+              </p>
+            )}
+          </div>
+          <span style={{ fontFamily: FD, fontSize: 26, fontWeight: 700, color: C.lime, flexShrink: 0 }}>
+            {progress}/{target}
+          </span>
+        </div>
+
+        {/* Progress bar */}
+        <div style={{ height: 5, background: C.surfaceEl, borderRadius: 100, overflow: "hidden", marginBottom: 12 }}>
+          <div style={{ height: "100%", width: `${pct}%`, background: C.lime, borderRadius: 100, transition: "width 0.5s ease" }} />
+        </div>
+
+        {!isJoined ? (
+          <Btn small label="Join Challenge →" onClick={async () => {
+            try { await joinChallenge(spotlight.id); showToast("Challenge joined! 🌿"); }
+            catch { showToast("Couldn't join challenge"); }
+          }} style={{ background: C.lime, color: "#1A1A1A", border: "none", justifyContent: "center" }} />
+        ) : (
+          <p style={{ fontSize: 11, color: C.lime, fontWeight: 700, margin: 0 }}>
+            ✓ You're in — {pct < 100 ? `${Math.round(pct)}% there` : "Challenge complete! 🎉"}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function QuickLogModal({ open, onClose, prefillStudio, recentLogs, showToast, onClassLogged, detectedCity }) {
   const { C } = useTheme();
   const [studioName, setStudioName]   = useState("");
@@ -696,148 +935,174 @@ function NearbyStudios({ userCoords, onSelectStudio, setSelectedStudio, showToas
 /* ══════════════════════════════════════════════════════════════════════════
    HOME
 ══════════════════════════════════════════════════════════════════════════ */
-function HomeScreen({ logs, setTab, setLogPrefill, challenges, user, userProfile, detectedCity, userCoords, gpsDetected, gpsScanning, gpsDismiss, hkConnected, hkConnect, hkSyncing, showToast, setSelectedStudio, onQuickLog }) {
+function HomeScreen({ logs, setTab, setLogPrefill, challenges, joinChallenge, user, userProfile, detectedCity, userCoords, gpsDetected, gpsScanning, gpsDismiss, hkConnected, hkConnect, hkSyncing, showToast, setSelectedStudio, onQuickLog }) {
   const { C } = useTheme();
   const stats = getStats(logs);
-  const [gIdx] = useState(() => Math.floor(Math.random() * GREETINGS.length));
-  const g = GREETINGS[gIdx];
   const hour = new Date().getHours();
-  const tE = hour < 12 ? "☀️" : hour < 17 ? "🌤" : "🌙";
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const displayName = userProfile?.display_name || user?.user_metadata?.display_name || user?.email?.split("@")[0] || "there";
   const activeChallenges = challenges.filter(c => c.active || c.joined).slice(0, 2);
 
+  // Progress toward next milestone (every 10 classes)
+  const nextMilestone = Math.ceil((stats.classes + 1) / 10) * 10;
+  const milestoneProgress = ((stats.classes % 10) / 10) * 100;
+
   return (
-    <div style={{ padding: "0 20px" }}>
-      <div style={{ paddingTop: 52, paddingBottom: 22 }}>
-        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", color: C.textTer, textTransform: "uppercase", margin: "0 0 8px" }}>{tE} {g.top}</p>
-        <h1 style={{ fontFamily: FD, fontSize: 40, fontWeight: 700, color: C.textPri, margin: 0, letterSpacing: -1, lineHeight: 1.05 }}>{g.name ? `${displayName}.` : (g.sub || "")}</h1>
+    <div style={{ background: C.bg, minHeight: "100vh" }}>
+
+      {/* ── Header ── */}
+      <div style={{ padding: "56px 22px 20px" }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: C.textSec, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 4px", fontFamily: FB }}>
+          {greeting},
+        </p>
+        <h1 style={{ fontFamily: FD, fontSize: 34, fontWeight: 700, color: C.textPri, margin: 0, letterSpacing: -0.5, lineHeight: 1.1 }}>
+          {displayName} 👋
+        </h1>
       </div>
 
-      {/* Hero stat */}
-      <div style={{ background: C.accent, borderRadius: 22, padding: "22px 24px", marginBottom: 12, position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", right: -24, top: -24, width: 130, height: 130, borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} />
-        <p style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.65)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 2px" }}>Total classes</p>
-        <p style={{ fontFamily: FD, fontSize: 64, fontWeight: 700, color: "#fff", margin: "0 0 14px", lineHeight: 1 }}>{stats.classes}</p>
-        <div style={{ display: "flex", gap: 24 }}>
-          {[["Studios", stats.studios], ["Cities", stats.cities], ["Countries", stats.countries]].map(([l, v]) => (
-            <div key={l}><p style={{ fontSize: 20, fontWeight: 700, color: "#fff", margin: 0 }}>{v}</p><p style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", margin: 0, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em" }}>{l}</p></div>
-          ))}
+      {/* ── Hero stats card ── */}
+      <div style={{ margin: "0 16px 20px", borderRadius: 24, background: C.gradientPrimary, padding: "24px", position: "relative", overflow: "hidden", boxShadow: C.shadowPurple }}>
+        {/* decorative circles */}
+        <div style={{ position: "absolute", right: -40, top: -40, width: 180, height: 180, borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
+        <div style={{ position: "absolute", right: 30, bottom: -50, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
+
+        <div style={{ display: "flex", alignItems: "center", gap: 20, position: "relative", zIndex: 1 }}>
+          <ProgressRing progress={milestoneProgress} size={80} strokeWidth={6} color="#fff">
+            {stats.classes}
+          </ProgressRing>
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.65)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 4px", fontFamily: FB }}>Total Classes</p>
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", margin: "0 0 14px", fontFamily: FB }}>{nextMilestone - stats.classes} to next milestone</p>
+            <div style={{ display: "flex", gap: 20 }}>
+              {[["Studios", stats.studios], ["Cities", stats.cities], ["Countries", stats.countries]].map(([l, v]) => (
+                <div key={l}>
+                  <p style={{ fontSize: 22, fontWeight: 700, color: "#fff", margin: 0, fontFamily: FD }}>{v}</p>
+                  <p style={{ fontSize: 9, color: "rgba(255,255,255,0.6)", margin: 0, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: FB }}>{l}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* GPS scanning */}
-      {gpsScanning && (
-        <Card style={{ marginBottom: 12, padding: "14px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: C.blueDim, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>📡</div>
+      <div style={{ padding: "0 16px" }}>
+
+        {/* ── GPS detected ── */}
+        {gpsScanning && (
+          <div style={{ background: C.blueDim, border: `1px solid ${C.blue}30`, borderRadius: 16, padding: "14px 16px", marginBottom: 14, display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: C.blueDim, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>📡</div>
             <div>
-              <p style={{ fontSize: 12, fontWeight: 700, color: C.blue, margin: "0 0 2px" }}>Scanning for nearby studios…</p>
-              <p style={{ fontSize: 11, color: C.textSec, margin: 0 }}>GPS is looking for your location</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: C.blue, margin: "0 0 2px", fontFamily: FB }}>Scanning for nearby studios…</p>
+              <p style={{ fontSize: 11, color: C.textSec, margin: 0, fontFamily: FB }}>GPS is looking for your location</p>
             </div>
           </div>
-        </Card>
-      )}
+        )}
 
-      {/* GPS detected */}
-      {gpsDetected && !gpsScanning && (
-        <Card accent glow style={{ marginBottom: 12 }}>
-          <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: C.accentDim, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>📍</div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 10, fontWeight: 700, color: C.accent, textTransform: "uppercase", letterSpacing: "0.12em", margin: "0 0 2px" }}>GPS Detected nearby</p>
-              <p style={{ fontSize: 15, fontWeight: 700, color: C.textPri, margin: "0 0 4px" }}>{gpsDetected.name}</p>
-              <p style={{ fontSize: 11, color: C.textSec, margin: "0 0 10px" }}>{gpsDetected.address} · {gpsDetected.distance}</p>
-              <div style={{ display: "flex", gap: 8 }}>
-                <Btn small label="Log class" onClick={() => { setLogPrefill({ studioId: gpsDetected.id }); setTab("log"); }} style={{ flex: 1 }} />
-                <Btn small ghost label="Dismiss" onClick={gpsDismiss} style={{ flex: 1 }} />
+        {gpsDetected && !gpsScanning && (
+          <div style={{ background: C.gradientCard, border: "1px solid rgba(123,53,193,0.3)", borderRadius: 20, padding: "16px", marginBottom: 14, boxShadow: C.shadowPurple }}>
+            <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+              <div style={{ width: 42, height: 42, borderRadius: 13, background: C.purpleDim, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>📍</div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 10, fontWeight: 800, color: C.accentPurple, textTransform: "uppercase", letterSpacing: "0.12em", margin: "0 0 3px", fontFamily: FB }}>Nearby studio detected</p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: C.textPri, margin: "0 0 4px", fontFamily: FB }}>{gpsDetected.name}</p>
+                <p style={{ fontSize: 11, color: C.textSec, margin: "0 0 12px", fontFamily: FB }}>{gpsDetected.distance}</p>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <Btn small gradient label="Log class ✦" onClick={() => { setLogPrefill({ studio: gpsDetected, studioId: gpsDetected.id, name: gpsDetected.name, city: gpsDetected.city, google_place_id: gpsDetected.google_place_id }); setTab("log"); }} style={{ flex: 1 }} />
+                  <Btn small ghost label="Dismiss" onClick={gpsDismiss} style={{ flex: 1 }} />
+                </div>
               </div>
             </div>
           </div>
-        </Card>
-      )}
+        )}
 
-      {/* HealthKit connect nudge */}
-      {!hkConnected && (
-        <Card style={{ marginBottom: 12, padding: "12px 14px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 22 }}>⌚</span>
+        {/* ── Apple Watch nudge ── */}
+        {!hkConnected && (
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 18, padding: "14px 16px", marginBottom: 14, display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: C.surfaceEl, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>⌚</div>
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: C.textPri, margin: "0 0 1px" }}>Connect Apple Watch</p>
-              <p style={{ fontSize: 11, color: C.textSec, margin: 0 }}>Auto-import workout data from your classes</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: C.textPri, margin: "0 0 1px", fontFamily: FB }}>Connect Apple Watch</p>
+              <p style={{ fontSize: 11, color: C.textSec, margin: 0, fontFamily: FB }}>Auto-import workout data</p>
             </div>
-            <Btn small label={hkSyncing ? "…" : "Connect"} onClick={hkConnect} disabled={hkSyncing} />
+            <Btn small label={hkSyncing ? "…" : "Connect"} onClick={hkConnect} disabled={hkSyncing} style={{ flexShrink: 0 }} />
           </div>
-        </Card>
-      )}
+        )}
 
-      {/* Smart class reminder — did you attend today? */}
-      <SmartClassPrompt logs={logs} setTab={setTab} setLogPrefill={setLogPrefill} C={C} />
+        {/* ── Smart prompt ── */}
+        <SmartClassPrompt logs={logs} setTab={setTab} setLogPrefill={setLogPrefill} C={C} />
 
-      {/* Challenges */}
-      {activeChallenges.length > 0 && <>
-        <SL>Active challenges</SL>
-        {activeChallenges.map(ch => (
-          <Card key={ch.id} style={{ marginBottom: 10 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: C.textPri, margin: "0 0 2px" }}>{ch.title}</p>
-                <p style={{ fontSize: 11, color: C.textSec, margin: 0 }}>Ends {ch.ends || ch.ends_at?.slice(5, 10)}</p>
-              </div>
-              <span style={{ fontFamily: FD, fontSize: 22, fontWeight: 700, color: C.accent }}>{ch.progress || ch.userProgress?.current_progress || 0}/{ch.target || ch.target_value}</span>
+        {/* ── Challenge Spotlight ── */}
+        <ChallengeSpotlight challenges={challenges} logs={logs} joinChallenge={joinChallenge} showToast={showToast} />
+
+        {/* ── Active challenges (horizontal scroll) ── */}
+        {activeChallenges.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <SL>Active challenges</SL>
+            <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 4, margin: "0 -4px" }}>
+              {activeChallenges.map(ch => {
+                const prog = ch.progress || ch.userProgress?.current_progress || 0;
+                const target = ch.target || ch.target_value || 1;
+                const pct = Math.min(100, (prog / target) * 100);
+                return (
+                  <div key={ch.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 18, padding: "14px", minWidth: 160, flexShrink: 0 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                      <ProgressRing progress={pct} size={42} strokeWidth={4} color={C.lime}>{prog}</ProgressRing>
+                      <span style={{ fontSize: 9, fontWeight: 800, color: C.lime, background: C.limeDim, padding: "2px 8px", borderRadius: 6, fontFamily: FB }}>ACTIVE</span>
+                    </div>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: C.textPri, margin: "0 0 2px", fontFamily: FB, lineHeight: 1.3 }}>{ch.title}</p>
+                    <p style={{ fontSize: 10, color: C.textSec, margin: 0, fontFamily: FB }}>Ends {ch.ends || ch.ends_at?.slice(5, 10)}</p>
+                  </div>
+                );
+              })}
             </div>
-            <div style={{ height: 4, background: C.surfaceHi, borderRadius: 100, overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${Math.min(100, ((ch.progress || ch.userProgress?.current_progress || 0) / (ch.target || ch.target_value || 1)) * 100)}%`, background: C.accent, borderRadius: 100 }} />
-            </div>
-          </Card>
-        ))}
-      </>}
+          </div>
+        )}
 
-      {/* Recent logs */}
-      <SL style={{ marginTop: 4 }}>Recent classes</SL>
-      {logs.length === 0 ? (
-        <Card style={{ textAlign: "center", padding: "32px 20px" }}>
-          <p style={{ fontSize: 32, marginBottom: 8 }}>🪷</p>
-          <p style={{ fontSize: 14, color: C.textSec }}>No classes logged yet.</p>
-          <Btn small label="Log your first class" onClick={() => setTab("log")} style={{ marginTop: 12 }} />
-        </Card>
-      ) : logs.slice(0, 3).map(log => (
-        <Card key={log.id} style={{ padding: "14px 16px" }}>
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <div style={{ width: 48, height: 48, borderRadius: 14, background: C.surfaceHi, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>{log.photos?.[0] || "🪷"}</div>
+        {/* ── Recent classes ── */}
+        <SL>Recent classes</SL>
+        {logs.length === 0 ? (
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20, padding: "36px 20px", textAlign: "center", marginBottom: 12 }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>🪷</div>
+            <p style={{ fontSize: 15, fontWeight: 700, color: C.textPri, margin: "0 0 6px", fontFamily: FB }}>No classes logged yet</p>
+            <p style={{ fontSize: 12, color: C.textSec, margin: "0 0 16px", fontFamily: FB }}>Start your Pilates journey today</p>
+            <Btn small gradient label="Log your first class ✦" onClick={() => setTab("log")} style={{ justifyContent: "center" }} />
+          </div>
+        ) : logs.slice(0, 3).map(log => (
+          <div key={log.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 18, padding: "14px 16px", marginBottom: 10, display: "flex", gap: 14, alignItems: "center" }}>
+            <div style={{ width: 46, height: 46, borderRadius: 14, background: C.gradientCard, border: `1px solid rgba(123,53,193,0.2)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>🪷</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: C.textPri, margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{log.studio || log.studio_name_manual}</p>
-              <p style={{ fontSize: 11, color: C.textSec, margin: 0 }}>{log.type || log.class_type} · {log.city} · {(log.date || "").slice(5).replace("-", "/")}</p>
-              {log.watchData && <p style={{ fontSize: 10, color: C.green, margin: "2px 0 0", fontWeight: 600 }}>⌚ {log.watchData.cal} cal · {log.watchData.hr} BPM</p>}
+              <p style={{ fontSize: 14, fontWeight: 700, color: C.textPri, margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: FB }}>{log.studio || log.studio_name_manual}</p>
+              <p style={{ fontSize: 11, color: C.textSec, margin: 0, fontFamily: FB }}>{log.type || log.class_type} · {log.city} · {(log.date || "").slice(5).replace("-", "/")}</p>
+              {log.watchData && <p style={{ fontSize: 10, color: C.green, margin: "2px 0 0", fontWeight: 700, fontFamily: FB }}>⌚ {log.watchData.cal} cal · {log.watchData.hr} BPM</p>}
             </div>
             <div style={{ textAlign: "right", flexShrink: 0 }}>
               <Stars n={log.rating} size={11} />
-              {(log.isTravel || log.is_travel_class) && <p style={{ fontSize: 9, color: C.accent, fontWeight: 700, margin: "3px 0 0" }}>✈ TRAVEL</p>}
+              {(log.isTravel || log.is_travel_class) && <p style={{ fontSize: 9, color: C.accentPurple, fontWeight: 800, margin: "3px 0 0", fontFamily: FB }}>✈ TRAVEL</p>}
             </div>
           </div>
-        </Card>
-      ))}
+        ))}
 
-      {/* Nearby — uses real Google Places API based on GPS coords */}
-      <NearbyStudios userCoords={userCoords} onSelectStudio={(s) => { if (s) { setSelectedStudio && setSelectedStudio(s); } else { setTab("explore"); } }} showToast={showToast} C={C} />
-      <div style={{ height: 88 }} />
+        {/* ── Nearby studios ── */}
+        <NearbyStudios userCoords={userCoords} onSelectStudio={(s) => { if (s) { setSelectedStudio?.(s); } else { setTab("explore"); } }} showToast={showToast} C={C} />
+        <div style={{ height: 100 }} />
+      </div>
 
       {/* ── Floating Quick Log FAB ── */}
       {onQuickLog && (
         <button onClick={onQuickLog} style={{
-          position: "fixed", bottom: 90, right: "calc(50% - 196px)",
-          background: C.accent, color: "#fff",
+          position: "fixed", bottom: 92, right: "calc(50% - 196px)",
+          background: C.gradientPrimary, color: "#fff",
           border: "none", borderRadius: 28,
-          padding: "12px 20px", fontSize: 13, fontWeight: 700, fontFamily: FB,
-          cursor: "pointer", zIndex: 80, letterSpacing: 0.3,
-          boxShadow: `0 4px 20px rgba(232,113,74,0.55)`,
-          display: "flex", alignItems: "center", gap: 7,
+          padding: "13px 22px", fontSize: 13, fontWeight: 800, fontFamily: FB,
+          cursor: "pointer", zIndex: 80, letterSpacing: 0.5,
+          boxShadow: C.shadowPurple,
+          display: "flex", alignItems: "center", gap: 8,
           transition: "transform 0.15s, box-shadow 0.15s",
           animation: "fadeUp 0.3s ease",
         }}
-          onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(232,113,74,0.65)"; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(232,113,74,0.55)"; }}
+          onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px) scale(1.03)"; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0) scale(1)"; }}
         >
-          <span style={{ fontSize: 16 }}>⚡</span> Quick Log
+          <span style={{ fontSize: 15 }}>⚡</span> Quick Log
         </button>
       )}
     </div>
@@ -847,7 +1112,7 @@ function HomeScreen({ logs, setTab, setLogPrefill, challenges, user, userProfile
 /* ══════════════════════════════════════════════════════════════════════════
    EXPLORE
 ══════════════════════════════════════════════════════════════════════════ */
-function ExploreScreen({ logs, savedStudios, toggleSave, setSelectedStudio, communityUsers, setCommunityUsers, setSelectedUser, userCoords, detectedCity, showToast }) {
+function ExploreScreen({ logs, savedStudios, savedStudiosCache, toggleSave, setSelectedStudio, communityUsers, setCommunityUsers, setSelectedUser, userCoords, detectedCity, showToast }) {
   const { C } = useTheme();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
@@ -1087,7 +1352,7 @@ function ExploreScreen({ logs, savedStudios, toggleSave, setSelectedStudio, comm
                         <img src={s.heroPhoto} alt={s.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { e.target.parentElement.style.display = "none"; }} />
                         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 60%)" }} />
                         {vc > 0 && <span style={{ position: "absolute", bottom: 8, left: 10, fontSize: 9, background: C.green, color: "#fff", borderRadius: 4, padding: "2px 6px", fontWeight: 700 }}>✓ VISITED {vc}×</span>}
-                        <button onClick={e => { e.stopPropagation(); toggleSave(s.id); }} style={{ position: "absolute", top: 8, right: 10, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", border: "none", borderRadius: 8, width: 30, height: 30, cursor: "pointer", fontSize: 16, color: saved ? "#ff6b6b" : "#fff" }}>{saved ? "♥" : "♡"}</button>
+                        <button onClick={e => { e.stopPropagation(); toggleSave(s.id, s); }} style={{ position: "absolute", top: 8, right: 10, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", border: "none", borderRadius: 8, width: 30, height: 30, cursor: "pointer", fontSize: 16, color: saved ? "#ff6b6b" : "#fff" }}>{saved ? "♥" : "♡"}</button>
                       </div>
                     )}
                     <div style={{ padding: "12px 14px" }}>
@@ -1110,7 +1375,7 @@ function ExploreScreen({ logs, savedStudios, toggleSave, setSelectedStudio, comm
                             <p style={{ fontFamily: FD, fontSize: 20, fontWeight: 700, color: C.accent, margin: "0 0 0" }}>{s.rating}</p>
                             <p style={{ fontSize: 10, color: C.textTer, margin: "0 0 8px" }}>{s.reviews} reviews</p>
                           </>}
-                          {!s.heroPhoto && <button onClick={e => { e.stopPropagation(); toggleSave(s.id); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: saved ? C.accent : C.textTer, padding: 0, lineHeight: 1 }}>{saved ? "♥" : "♡"}</button>}
+                          {!s.heroPhoto && <button onClick={e => { e.stopPropagation(); toggleSave(s.id, s); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: saved ? C.accent : C.textTer, padding: 0, lineHeight: 1 }}>{saved ? "♥" : "♡"}</button>}
                         </div>
                       </div>
                     </div>
@@ -1176,15 +1441,18 @@ function ExploreScreen({ logs, savedStudios, toggleSave, setSelectedStudio, comm
               <p style={{ fontSize: 15, color: C.textSec, fontWeight: 600 }}>No saved studios yet.</p>
               <p style={{ fontSize: 12, color: C.textTer, marginTop: 4 }}>Tap ♡ on any studio to save it.</p>
             </div>
-          ) : STUDIOS_SEED.filter(s => savedStudios.includes(s.id)).map(s => (
+          ) : (savedStudiosCache || []).filter(s => savedStudios.includes(s.id)).map(s => (
             <Card key={s.id} onClick={() => setSelectedStudio(s)}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: 26 }}>{s.hero}</span>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: C.textPri, margin: "0 0 2px" }}>{s.name}</p>
-                  <p style={{ fontSize: 11, color: C.textSec, margin: 0 }}>{s.city}, {s.country} · ★{s.rating}</p>
+                {s.heroPhoto
+                  ? <img src={s.heroPhoto} alt={s.name} style={{ width: 44, height: 44, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />
+                  : <span style={{ fontSize: 26, flexShrink: 0 }}>{s.hero || "🪷"}</span>
+                }
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: C.textPri, margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</p>
+                  <p style={{ fontSize: 11, color: C.textSec, margin: 0 }}>{s.city}{s.country ? `, ${s.country}` : ""}{s.rating > 0 ? ` · ★${s.rating}` : ""}</p>
                 </div>
-                <button onClick={e => { e.stopPropagation(); toggleSave(s.id); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: C.accent, padding: 0 }}>♥</button>
+                <button onClick={e => { e.stopPropagation(); toggleSave(s.id, s); }} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: C.accent, padding: 0, flexShrink: 0 }}>♥</button>
               </div>
             </Card>
           ))}
@@ -1199,67 +1467,156 @@ function ExploreScreen({ logs, savedStudios, toggleSave, setSelectedStudio, comm
 ══════════════════════════════════════════════════════════════════════════ */
 /* ── StudioReviews — fetches real reviews from Supabase ─────────────────── */
 function StudioReviews({ studioId, googlePlaceId, C }) {
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const isGoogleStudio = !studioId || String(studioId).startsWith("Ch") || (googlePlaceId && String(googlePlaceId).startsWith("Ch"));
+  const [googleReviews, setGoogleReviews] = useState([]);
+  const [appReviews, setAppReviews]       = useState([]);
+  const [loading, setLoading]             = useState(true);
+  const [overallRating, setOverallRating] = useState(null);
+  const [totalCount, setTotalCount]       = useState(0);
+
+  const placeId = googlePlaceId || (typeof studioId === "string" && studioId.startsWith("Ch") ? studioId : null);
 
   useEffect(() => {
-    if (isGoogleStudio) {
-      // Google Places studio — fetch from Supabase by google_place_id if possible
-      if (googlePlaceId) {
-        supabase.from("reviews").select("*, users(display_name)")
-          .eq("google_place_id", googlePlaceId)
-          .eq("moderation_status", "approved")
-          .order("created_at", { ascending: false })
-          .then(({ data }) => { setReviews(data || []); })
-          .finally(() => setLoading(false));
-      } else {
-        setReviews([]);
-        setLoading(false);
-      }
-      return;
+    let cancelled = false;
+    setLoading(true);
+
+    const fetches = [];
+
+    // ── Fetch Google Places reviews via serverless function ──────────────
+    if (placeId) {
+      fetches.push(
+        fetch(`/api/places-search?place_id=${encodeURIComponent(placeId)}`)
+          .then(r => r.json())
+          .then(json => {
+            if (!cancelled && json.studio) {
+              const r = json.studio;
+              if (r.googleReviews?.length > 0) setGoogleReviews(r.googleReviews);
+              if (r.rating)        setOverallRating(r.rating);
+              if (r.reviews)       setTotalCount(r.reviews);
+            }
+          })
+          .catch(() => {})
+      );
     }
-    supabase
-      .from("reviews")
-      .select("*, users(display_name)")
-      .eq("studio_id", studioId)
-      .eq("moderation_status", "approved")
-      .order("created_at", { ascending: false })
-      .then(({ data }) => { setReviews(data || []); })
-      .finally(() => setLoading(false));
-  }, [studioId]);
 
-  if (loading) return <p style={{ fontSize: 13, color: C.textSec, padding: "20px 0" }}>Loading reviews…</p>;
+    // ── Fetch in-app Supabase reviews ────────────────────────────────────
+    const q = placeId
+      ? supabase.from("reviews").select("*, users(display_name)").eq("google_place_id", placeId).eq("moderation_status", "approved").order("created_at", { ascending: false })
+      : studioId
+        ? supabase.from("reviews").select("*, users(display_name)").eq("studio_id", studioId).eq("moderation_status", "approved").order("created_at", { ascending: false })
+        : null;
 
-  if (reviews.length === 0) return (
+    if (q) fetches.push(q.then(({ data }) => { if (!cancelled) setAppReviews(data || []); }).catch(() => {}));
+
+    Promise.all(fetches).finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [studioId, placeId]);
+
+  // Rating distribution from Google reviews
+  const ratingDist = [5, 4, 3, 2, 1].map(star => {
+    const count = googleReviews.filter(r => Math.round(r.rating) === star).length;
+    return { star, count };
+  });
+  const totalGoogleReviews = googleReviews.length;
+
+  const relativeTime = (ts) => {
+    if (!ts) return "";
+    try {
+      const secs = Math.floor((Date.now() - new Date(ts * 1000 || ts).getTime()) / 1000);
+      if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
+      if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
+      if (secs < 2592000) return `${Math.floor(secs / 86400)}d ago`;
+      if (secs < 31536000) return `${Math.floor(secs / 2592000)}mo ago`;
+      return `${Math.floor(secs / 31536000)}y ago`;
+    } catch { return ""; }
+  };
+
+  if (loading) return (
     <div style={{ textAlign: "center", padding: "32px 0" }}>
-      <p style={{ fontSize: 32, marginBottom: 8 }}>⭐</p>
-      <p style={{ fontSize: 14, color: C.textSec, marginBottom: 12 }}>No in-app reviews yet. Be the first!</p>
-      {isGoogleStudio && googlePlaceId && (
-        <a
-          href={`https://www.google.com/maps/search/?api=1&query_place_id=${googlePlaceId}`}
-          target="_blank" rel="noopener noreferrer"
-          style={{ fontSize: 12, color: C.accent, fontWeight: 700, textDecoration: "none" }}
-        >
-          See Google reviews →
-        </a>
-      )}
+      <p style={{ fontSize: 13, color: C.textSec }}>Loading reviews…</p>
+    </div>
+  );
+
+  const hasAny = googleReviews.length > 0 || appReviews.length > 0;
+
+  if (!hasAny) return (
+    <div style={{ textAlign: "center", padding: "40px 20px" }}>
+      <p style={{ fontSize: 36, marginBottom: 10 }}>⭐</p>
+      <p style={{ fontSize: 14, fontWeight: 700, color: C.textPri, margin: "0 0 6px" }}>No reviews yet</p>
+      <p style={{ fontSize: 12, color: C.textSec }}>Be the first to leave a review below.</p>
     </div>
   );
 
   return (
     <div>
-      {reviews.map((r, i) => (
-        <div key={r.id || i} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "14px", marginBottom: 10 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: C.textPri }}>{r.users?.display_name || "Anonymous"}</span>
-            <span style={{ color: "#f59e0b", fontSize: 12 }}>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+      {/* ── Rating summary bar ── */}
+      {overallRating && totalCount > 0 && (
+        <div style={{ background: C.surfaceHi, borderRadius: 16, padding: "16px", marginBottom: 16, display: "flex", gap: 16, alignItems: "center" }}>
+          <div style={{ textAlign: "center", flexShrink: 0 }}>
+            <p style={{ fontFamily: FD, fontSize: 40, fontWeight: 700, color: C.accent, margin: 0, lineHeight: 1 }}>{overallRating}</p>
+            <div style={{ color: C.accent, fontSize: 12, margin: "4px 0 2px" }}>{"★".repeat(Math.round(overallRating))}{"☆".repeat(5 - Math.round(overallRating))}</div>
+            <p style={{ fontSize: 10, color: C.textTer, margin: 0 }}>{totalCount} reviews</p>
           </div>
-          {r.body && <p style={{ fontSize: 12, color: C.textSec, lineHeight: 1.6, margin: "0 0 8px" }}>{r.body}</p>}
-          {r.tags?.length > 0 && <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>{r.tags.map(t => <span key={t} style={{ background: C.accentDim, color: C.accent, borderRadius: 100, padding: "2px 8px", fontSize: 10, fontWeight: 600 }}>{t}</span>)}</div>}
-          <p style={{ fontSize: 10, color: C.textTer, margin: "6px 0 0" }}>{new Date(r.created_at).toLocaleDateString()}</p>
+          {totalGoogleReviews > 0 && (
+            <div style={{ flex: 1 }}>
+              {ratingDist.map(({ star, count }) => (
+                <div key={star} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
+                  <span style={{ fontSize: 10, color: C.textTer, width: 8 }}>{star}</span>
+                  <div style={{ flex: 1, height: 5, background: C.surfaceEl, borderRadius: 100, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${totalGoogleReviews > 0 ? (count / totalGoogleReviews) * 100 : 0}%`, background: C.accent, borderRadius: 100, transition: "width 0.4s ease" }} />
+                  </div>
+                  <span style={{ fontSize: 10, color: C.textTer, width: 14, textAlign: "right" }}>{count}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      ))}
+      )}
+
+      {/* ── Google reviews ── */}
+      {googleReviews.length > 0 && (
+        <>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: C.textTer, textTransform: "uppercase", margin: "0 0 8px" }}>Google Reviews</p>
+          {googleReviews.map((r, i) => (
+            <div key={i} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "14px", marginBottom: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {r.profile_photo_url
+                    ? <img src={r.profile_photo_url} alt={r.author_name} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} onError={e => { e.target.style.display = "none"; }} />
+                    : <div style={{ width: 28, height: 28, borderRadius: "50%", background: C.accentDim, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: C.accent, fontWeight: 700 }}>{(r.author_name || "G")[0]}</div>
+                  }
+                  <div>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: C.textPri, margin: 0 }}>{r.author_name || "Google User"}</p>
+                    <p style={{ fontSize: 10, color: C.textTer, margin: 0 }}>{r.relative_time_description || relativeTime(r.time)}</p>
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
+                  <span style={{ color: "#f59e0b", fontSize: 11 }}>{"★".repeat(r.rating || 0)}{"☆".repeat(5 - (r.rating || 0))}</span>
+                  <span style={{ fontSize: 9, background: C.blueDim, color: C.blue, borderRadius: 6, padding: "2px 6px", fontWeight: 700, letterSpacing: "0.05em" }}>GOOGLE</span>
+                </div>
+              </div>
+              {r.text && <p style={{ fontSize: 12, color: C.textSec, lineHeight: 1.65, margin: 0 }}>{r.text}</p>}
+            </div>
+          ))}
+        </>
+      )}
+
+      {/* ── In-app reviews ── */}
+      {appReviews.length > 0 && (
+        <>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: C.textTer, textTransform: "uppercase", margin: "12px 0 8px" }}>In-App Reviews</p>
+          {appReviews.map((r, i) => (
+            <div key={r.id || i} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "14px", marginBottom: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: C.textPri }}>{r.users?.display_name || "Anonymous"}</span>
+                <span style={{ color: "#f59e0b", fontSize: 12 }}>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+              </div>
+              {r.body && <p style={{ fontSize: 12, color: C.textSec, lineHeight: 1.6, margin: "0 0 8px" }}>{r.body}</p>}
+              {r.tags?.length > 0 && <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 6 }}>{r.tags.map(t => <span key={t} style={{ background: C.accentDim, color: C.accent, borderRadius: 100, padding: "2px 8px", fontSize: 10, fontWeight: 600 }}>{t}</span>)}</div>}
+              <p style={{ fontSize: 10, color: C.textTer, margin: 0 }}>{new Date(r.created_at).toLocaleDateString()}</p>
+            </div>
+          ))}
+        </>
+      )}
     </div>
   );
 }
@@ -1337,7 +1694,7 @@ function StudioDetail({ studio, logs, onBack, savedStudios, toggleSave, setTab, 
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 50%)" }} />
         {/* Back + Save buttons */}
         <button onClick={onBack} style={{ position: "absolute", top: 52, left: 16, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)", border: "none", borderRadius: 10, width: 36, height: 36, cursor: "pointer", fontSize: 16, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>←</button>
-        <button onClick={() => toggleSave(studio.id)} style={{ position: "absolute", top: 52, right: 16, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)", border: "none", borderRadius: 10, width: 36, height: 36, cursor: "pointer", fontSize: 18, color: saved ? "#ff6b6b" : "#fff" }}>{saved ? "♥" : "♡"}</button>
+        <button onClick={() => toggleSave(studio.id, s)} style={{ position: "absolute", top: 52, right: 16, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)", border: "none", borderRadius: 10, width: 36, height: 36, cursor: "pointer", fontSize: 18, color: saved ? "#ff6b6b" : "#fff" }}>{saved ? "♥" : "♡"}</button>
         {/* Loading indicator while fetching details */}
         {loadingDetails && (
           <div style={{ position: "absolute", bottom: 8, right: 12, background: "rgba(0,0,0,0.5)", borderRadius: 8, padding: "3px 8px", fontSize: 10, color: "#fff" }}>
@@ -1479,7 +1836,16 @@ function StudioDetail({ studio, logs, onBack, savedStudios, toggleSave, setTab, 
         </div>}
 
         <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-          <Btn label="Log a class here" onClick={() => { setLogPrefill({ studioId: studio.id }); setTab("log"); }} style={{ flex: 1, justifyContent: "center" }} />
+          <Btn label="Log a class here" onClick={() => {
+            setLogPrefill({
+              studio: s,
+              studioId: s.id,
+              name: s.name,
+              city: s.city,
+              google_place_id: s.google_place_id,
+            });
+            setTab("log");
+          }} style={{ flex: 1, justifyContent: "center" }} />
         </div>
       </div>
     </div>
@@ -1522,10 +1888,11 @@ function PublicProfileScreen({ user, onBack, setCommunityUsers }) {
 /* ══════════════════════════════════════════════════════════════════════════
    LOG SCREEN — fully wired to Supabase
 ══════════════════════════════════════════════════════════════════════════ */
-function LogScreen({ logs, setLogs, prefill, setPrefill, hkConnected, hkConnect, hkSyncing, hkWorkouts, showToast, detectedCity, onClassLogged }) {
+function LogScreen({ logs, setLogs, prefill, setPrefill, hkConnected, hkConnect, hkSyncing, hkWorkouts, showToast, detectedCity, onClassLogged, notifications }) {
   const { C } = useTheme();
   const { uploadPhoto, saveClassPhoto, uploading: photoUploading } = usePhotoUpload();
-  const pf = prefill?.studioId ? STUDIOS_SEED.find(s => s.id === prefill.studioId) : null;
+  // Support both full studio object prefill and legacy studioId-only prefill
+  const pf = prefill?.studio || (prefill?.studioId ? STUDIOS_SEED.find(s => s.id === prefill.studioId) : null);
   const [step, setStep] = useState(1);
   const [studio, setStudio] = useState(pf || null);
   const [ss, setSS] = useState(pf?.name || "");
@@ -1574,7 +1941,14 @@ function LogScreen({ logs, setLogs, prefill, setPrefill, hkConnected, hkConnect,
   };
 
   useEffect(() => {
-    if (prefill?.studioId) { const s = STUDIOS_SEED.find(x => x.id === prefill.studioId); if (s) { setStudio(s); setSS(s.name); } }
+    if (prefill?.studio) {
+      // Full studio object passed (from StudioDetail)
+      setStudio(prefill.studio);
+      setSS(prefill.studio.name);
+    } else if (prefill?.studioId) {
+      const s = STUDIOS_SEED.find(x => x.id === prefill.studioId);
+      if (s) { setStudio(s); setSS(s.name); }
+    }
   }, [prefill]);
 
   const matchedWorkout = hkConnected && hkWorkouts.find(w => w.date === date);
@@ -1732,8 +2106,14 @@ function LogScreen({ logs, setLogs, prefill, setPrefill, hkConnected, hkConnect,
   return (
     <div style={{ padding: "48px 20px 24px" }}>
       <h2 style={{ fontFamily: FD, fontSize: 28, fontWeight: 700, color: C.textPri, margin: "0 0 4px" }}>Log a class</h2>
-      <p style={{ fontSize: 10, color: C.textTer, margin: "0 0 20px", fontWeight: 700, letterSpacing: "0.1em" }}>STEP {step} OF 3</p>
-      <div style={{ display: "flex", gap: 6, marginBottom: 26 }}>{[1, 2, 3].map(s => <div key={s} style={{ flex: 1, height: 3, background: s <= step ? C.accent : C.surfaceHi, borderRadius: 100, transition: "background 0.3s" }} />)}</div>
+      <p style={{ fontSize: 10, color: C.textSec, margin: "0 0 20px", fontWeight: 800, letterSpacing: "0.12em", fontFamily: FB }}>STEP {step} OF 3</p>
+      <div style={{ display: "flex", gap: 8, marginBottom: 26 }}>
+        {[1, 2, 3].map(s => (
+          <div key={s} style={{ flex: 1, height: 4, borderRadius: 100, overflow: "hidden", background: C.surfaceEl }}>
+            <div style={{ height: "100%", width: s <= step ? "100%" : "0%", background: C.gradientPrimary, borderRadius: 100, transition: "width 0.4s cubic-bezier(0.4,0,0.2,1)" }} />
+          </div>
+        ))}
+      </div>
 
       {step === 1 && <div>
         <SL>Studio</SL>
@@ -1926,11 +2306,11 @@ function PassportScreen({ logs }) {
         </div>
       </div>
       <div style={{ padding: "14px 20px" }}>
-        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-          {[["Classes", stats.classes], ["Studios", stats.studios], ["Cities", stats.cities], ["Countries", stats.countries]].map(([l, v]) => (
-            <div key={l} style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 14, padding: "10px 6px", textAlign: "center" }}>
-              <div style={{ fontFamily: FD, fontSize: 20, fontWeight: 700, color: C.accent }}>{v}</div>
-              <div style={{ fontSize: 9, color: C.textTer, marginTop: 2, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em" }}>{l}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 20 }}>
+          {[["Classes", stats.classes, C.accent], ["Studios", stats.studios, C.accentPurple], ["Cities", stats.cities, C.lime], ["Countries", stats.countries, C.blue]].map(([l, v, col]) => (
+            <div key={l} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "12px 6px", textAlign: "center" }}>
+              <div style={{ fontFamily: FD, fontSize: 22, fontWeight: 700, color: col }}>{v}</div>
+              <div style={{ fontSize: 9, color: C.textTer, marginTop: 3, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.07em", fontFamily: FB }}>{l}</div>
             </div>
           ))}
         </div>
@@ -1991,12 +2371,27 @@ function PassportScreen({ logs }) {
           </Card>
         </div>}
 
-        {view === "badges" && <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
+        {view === "badges" && <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
           {badges.map(b => (
-            <div key={b.id} style={{ background: b.unlocked ? C.surface : C.bg, border: `1px solid ${b.unlocked ? "rgba(232,113,74,0.3)" : C.border}`, borderRadius: 16, padding: "14px 8px", textAlign: "center", opacity: b.unlocked ? 1 : 0.5 }}>
-              <div style={{ fontSize: 26, marginBottom: 5 }}>{b.icon}</div>
-              <p style={{ fontSize: 10, fontWeight: 700, color: b.unlocked ? C.textPri : C.textTer, margin: "0 0 4px", lineHeight: 1.3 }}>{b.name}</p>
-              {b.unlocked ? <p style={{ fontSize: 9, color: C.accent, margin: 0, fontWeight: 700 }}>EARNED ✓</p> : <div style={{ marginTop: 3 }}><div style={{ height: 3, background: C.surfaceHi, borderRadius: 100, overflow: "hidden" }}><div style={{ height: "100%", width: `${(b.current / b.target) * 100}%`, background: C.accent, borderRadius: 100 }} /></div><p style={{ fontSize: 9, color: C.textTer, margin: "3px 0 0" }}>{b.current}/{b.target}</p></div>}
+            <div key={b.id} style={{
+              background: b.unlocked ? C.gradientCard : C.surface,
+              border: `1px solid ${b.unlocked ? "rgba(123,53,193,0.3)" : C.border}`,
+              borderRadius: 20, padding: "16px 10px", textAlign: "center",
+              opacity: b.unlocked ? 1 : 0.5,
+              boxShadow: b.unlocked ? C.shadowPurple : "none",
+              transition: "all 0.2s",
+            }}>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
+                {b.unlocked
+                  ? <div style={{ width: 52, height: 52, borderRadius: "50%", background: C.gradientPrimary, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, boxShadow: C.shadowPurple }}>{b.icon}</div>
+                  : <ProgressRing progress={(b.current / b.target) * 100} size={52} strokeWidth={4} color={C.accentPurple}>{b.icon}</ProgressRing>
+                }
+              </div>
+              <p style={{ fontSize: 10, fontWeight: 800, color: b.unlocked ? C.textPri : C.textTer, margin: "0 0 4px", lineHeight: 1.3, fontFamily: FB }}>{b.name}</p>
+              {b.unlocked
+                ? <p style={{ fontSize: 9, color: C.accentPurple, margin: 0, fontWeight: 800, fontFamily: FB, letterSpacing: "0.08em" }}>✓ EARNED</p>
+                : <p style={{ fontSize: 9, color: C.textTer, margin: 0, fontFamily: FB }}>{b.current}/{b.target}</p>
+              }
             </div>
           ))}
         </div>}
@@ -2099,7 +2494,7 @@ function InsightsModal({ logs, onClose }) {
 /* ══════════════════════════════════════════════════════════════════════════
    PROFILE — fully wired
 ══════════════════════════════════════════════════════════════════════════ */
-function ProfileScreen({ logs, savedStudios, challenges, joinChallenge, leaveChallenge, hkConnected, hkConnect, hkSyncing, hkWorkouts, user, userProfile, detectedCity, showToast, notifications }) {
+function ProfileScreen({ logs, savedStudios, savedStudiosCache, challenges, joinChallenge, leaveChallenge, hkConnected, hkConnect, hkSyncing, hkWorkouts, user, userProfile, detectedCity, showToast, notifications }) {
   const { C, dark, toggle } = useTheme();
   const stats = getStats(logs);
   const { badges: allBadgesFromHook, evaluateBadges } = useBadges(stats);
@@ -2282,7 +2677,20 @@ function ProfileScreen({ logs, savedStudios, challenges, joinChallenge, leaveCha
 
         {tab === "saved" && <div>
           {savedStudios.length === 0 ? <div style={{ textAlign: "center", padding: "56px 20px" }}><p style={{ fontSize: 40, marginBottom: 10 }}>♡</p><p style={{ fontSize: 15, color: C.textSec, fontWeight: 600 }}>No saved studios yet.</p><p style={{ fontSize: 12, color: C.textTer, marginTop: 4 }}>Tap ♡ on any studio to save it.</p></div>
-            : STUDIOS_SEED.filter(s => savedStudios.includes(s.id)).map(s => <Card key={s.id} style={{ padding: "14px" }}><div style={{ display: "flex", alignItems: "center", gap: 12 }}><span style={{ fontSize: 26 }}>{s.hero}</span><div><p style={{ fontSize: 14, fontWeight: 700, color: C.textPri, margin: "0 0 2px" }}>{s.name}</p><p style={{ fontSize: 11, color: C.textSec, margin: 0 }}>{s.city} · ★{s.rating}</p></div></div></Card>)}
+            : (savedStudiosCache || []).filter(s => savedStudios.includes(s.id)).map(s => (
+                <Card key={s.id} style={{ padding: "14px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    {s.heroPhoto
+                      ? <img src={s.heroPhoto} alt={s.name} style={{ width: 44, height: 44, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} onError={e => { e.target.style.display = "none"; }} />
+                      : <span style={{ fontSize: 26, flexShrink: 0 }}>{s.hero || "🪷"}</span>
+                    }
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: C.textPri, margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</p>
+                      <p style={{ fontSize: 11, color: C.textSec, margin: 0 }}>{s.city}{s.country ? `, ${s.country}` : ""}{s.rating > 0 ? ` · ★${s.rating}` : ""}</p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
         </div>}
 
         {tab === "settings" && <div>
@@ -2386,6 +2794,10 @@ export default function App({ user }) {
   const [logs, setLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(false);
   const [savedStudios, setSavedStudios] = useState([]);
+  const [savedStudiosCache, setSavedStudiosCache] = useState(() => {
+    // Restore from localStorage on mount so saved studios survive refresh
+    try { return JSON.parse(localStorage.getItem("pp_saved_studios_cache") || "[]"); } catch { return []; }
+  });
 
   // Offline support
   const { isOnline, cacheLogs, getCachedLogs } = useOfflineCache();
@@ -2573,11 +2985,39 @@ export default function App({ user }) {
       .finally(() => setLogsLoading(false));
   }, [user, isOnline, getCachedLogs, cacheLogs]);
 
-  // Fetch saved studios
+  // Fetch saved studios — load IDs + hydrate cache from Supabase studios table
   useEffect(() => {
     if (!user?.id) return;
-    supabase.from("saved_studios").select("studio_id").eq("user_id", user.id)
-      .then(({ data }) => { if (data) setSavedStudios(data.map(s => s.studio_id)); });
+    supabase
+      .from("saved_studios")
+      .select("studio_id, studios(*)")
+      .eq("user_id", user.id)
+      .then(({ data }) => {
+        if (!data) return;
+        setSavedStudios(data.map(s => s.studio_id));
+        // Hydrate cache with any DB studio objects (fills in studios saved before this update)
+        const dbStudios = data
+          .filter(s => s.studios)
+          .map(s => ({
+            id: s.studios.id,
+            name: s.studios.name || "Unknown Studio",
+            city: s.studios.city || "",
+            country: s.studios.country || "",
+            rating: s.studios.avg_rating || s.studios.rating || 0,
+            hero: s.studios.hero_emoji || "🪷",
+            heroPhoto: s.studios.hero_photo || null,
+            address: s.studios.address || "",
+            google_place_id: s.studios.google_place_id || null,
+          }));
+        if (dbStudios.length > 0) {
+          setSavedStudiosCache(prev => {
+            const existingIds = new Set(prev.map(s => s.id));
+            const merged = [...prev, ...dbStudios.filter(s => !existingIds.has(s.id))];
+            localStorage.setItem("pp_saved_studios_cache", JSON.stringify(merged));
+            return merged;
+          });
+        }
+      });
   }, [user?.id]);
 
   // Haversine distance between two lat/lng points in metres
@@ -2591,14 +3031,14 @@ export default function App({ user }) {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   };
 
-  // Real GPS geofencing with 100m radius + 2-hour cooldown
+  // Real GPS geofencing with confidence scoring + 2-hour cooldown
   useEffect(() => {
     if (gpsDismissed || !onboarded) return;
     if (!FLAGS.gps || !navigator.geolocation) return;
 
     let lastDetectionTime = 0;
     const COOLDOWN_MS = 2 * 60 * 60 * 1000; // 2 hours
-    const RADIUS_M = 500; // 500 metres — more forgiving for real-world detection
+    const RADIUS_M = 150; // tightened from 500m
 
     setGpsScanning(true);
 
@@ -2608,13 +3048,10 @@ export default function App({ user }) {
         const { latitude, longitude } = position.coords;
         const now = Date.now();
 
-        // Cooldown — don't spam the prompt
         if (now - lastDetectionTime < COOLDOWN_MS) return;
 
-        // Find closest studio within RADIUS_M
         let closestStudio = null;
         let closestDist = Infinity;
-        // Check all known studios: seed + any stored in window from Places search
         const allKnownStudios = [
           ...STUDIOS_SEED,
           ...(window.__nearbyStudios__ || []),
@@ -2631,22 +3068,17 @@ export default function App({ user }) {
         }
 
         if (closestStudio && !gpsDetected) {
-          lastDetectionTime = now;
-          setGpsDetected(closestStudio);
+          // Confidence scoring: <50m = 100%, 50-150m = 70%
+          const confidence = closestDist < 50 ? 100 : 70;
+          if (confidence >= 70) {
+            lastDetectionTime = now;
+            setGpsDetected({ ...closestStudio, confidence });
+          }
         }
       },
       (err) => {
-        // Permission denied or unavailable — fall back to city-based hint
         setGpsScanning(false);
         console.info("GPS unavailable:", err.message);
-        // Show a city-matched studio as a softer hint (not a precise detection)
-        if (detectedCity && !gpsDetected) {
-          const cityMatch = STUDIOS_SEED.find(s =>
-            s.city.toLowerCase().includes(detectedCity.toLowerCase()) ||
-            detectedCity.toLowerCase().includes(s.city.toLowerCase())
-          );
-          if (cityMatch) setGpsDetected(cityMatch);
-        }
       },
       { enableHighAccuracy: true, maximumAge: 30000, timeout: 15000 }
     );
@@ -2724,16 +3156,28 @@ export default function App({ user }) {
     }
   };
 
-  const toggleSave = async (studioId) => {
+  const toggleSave = async (studioId, studioObj = null) => {
     if (!user) return;
     const alreadySaved = savedStudios.includes(studioId);
     if (alreadySaved) {
       await supabase.from("saved_studios").delete().eq("user_id", user.id).eq("studio_id", studioId);
       setSavedStudios(prev => prev.filter(x => x !== studioId));
+      setSavedStudiosCache(prev => {
+        const updated = prev.filter(s => s.id !== studioId);
+        localStorage.setItem("pp_saved_studios_cache", JSON.stringify(updated));
+        return updated;
+      });
       showToast("Removed from saved");
     } else {
       await supabase.from("saved_studios").upsert({ user_id: user.id, studio_id: studioId });
       setSavedStudios(prev => [...prev, studioId]);
+      if (studioObj) {
+        setSavedStudiosCache(prev => {
+          const updated = [studioObj, ...prev.filter(s => s.id !== studioId)];
+          localStorage.setItem("pp_saved_studios_cache", JSON.stringify(updated));
+          return updated;
+        });
+      }
       showToast("Studio saved ♥");
     }
   };
@@ -2748,6 +3192,9 @@ export default function App({ user }) {
   const badgeStats = getStats(logs);
   const { badges: appBadges, evaluateBadges } = useBadges(badgeStats);
 
+  // Badge celebration modal
+  const [celebrationBadge, setCelebrationBadge] = useState(null);
+
   const completeOnboarding = () => { localStorage.setItem("pp_onboarded", "1"); setOnboarded(true); };
 
   // Called after every successful class log to check for newly unlocked badges
@@ -2755,8 +3202,8 @@ export default function App({ user }) {
     try {
       const newBadges = await evaluateBadges();
       if (newBadges && newBadges.length > 0) {
+        setCelebrationBadge(newBadges[0]); // show first new badge
         newBadges.forEach(b => {
-          showToast(`🏅 Badge unlocked: ${b.name}!`);
           notifications.sendNotification(`Badge unlocked: ${b.name} ${b.icon_name || "✦"}`, {
             body: b.unlock_copy || "Keep up the great practice!",
             tag: `badge-${b.id}`,
@@ -2764,7 +3211,7 @@ export default function App({ user }) {
         });
       }
     } catch (_) {}
-  }, [evaluateBadges, showToast]);
+  }, [evaluateBadges, notifications]);
 
   if (!onboarded) return (
     <ThemeProvider>
@@ -2775,7 +3222,7 @@ export default function App({ user }) {
     </ThemeProvider>
   );
 
-  const sharedProps = { logs, savedStudios, toggleSave, hkConnected, hkConnect, hkSyncing, hkWorkouts, challenges, joinChallenge, leaveChallenge, communityUsers, setCommunityUsers, showToast, user, userProfile, detectedCity, userCoords, appBadges, onClassLogged, notifications, setSelectedStudio };
+  const sharedProps = { logs, savedStudios, savedStudiosCache, toggleSave, hkConnected, hkConnect, hkSyncing, hkWorkouts, challenges, joinChallenge, leaveChallenge, communityUsers, setCommunityUsers, showToast, user, userProfile, detectedCity, userCoords, appBadges, onClassLogged, notifications, setSelectedStudio };
 
   const renderScreen = () => {
     if (selectedUser) return <PublicProfileScreen user={selectedUser} onBack={() => setSelectedUser(null)} setCommunityUsers={setCommunityUsers} />;
@@ -2783,7 +3230,7 @@ export default function App({ user }) {
     switch (tab) {
       case "home": return <HomeScreen {...sharedProps} setTab={handleSetTab} setLogPrefill={setLogPrefill} gpsDetected={gpsDetected} gpsScanning={gpsScanning} gpsDismiss={() => { setGpsDetected(null); setGpsDismissed(true); }} setSelectedStudio={setSelectedStudio} onQuickLog={() => setQuickLogOpen(true)} />;
       case "explore": return <ExploreScreen {...sharedProps} setSelectedStudio={setSelectedStudio} setSelectedUser={setSelectedUser} userCoords={userCoords} detectedCity={detectedCity} />;
-      case "log": return <LogScreen logs={logs} setLogs={setLogs} prefill={logPrefill} setPrefill={setLogPrefill} hkConnected={hkConnected} hkConnect={hkConnect} hkSyncing={hkSyncing} hkWorkouts={hkWorkouts} showToast={showToast} detectedCity={detectedCity} onClassLogged={onClassLogged} />;
+      case "log": return <LogScreen logs={logs} setLogs={setLogs} prefill={logPrefill} setPrefill={setLogPrefill} hkConnected={hkConnected} hkConnect={hkConnect} hkSyncing={hkSyncing} hkWorkouts={hkWorkouts} showToast={showToast} detectedCity={detectedCity} onClassLogged={onClassLogged} notifications={notifications} />;
       case "passport": return <PassportScreen logs={logs} />;
       case "profile": return <ProfileScreen {...sharedProps} />;
       default: return null;
@@ -2825,16 +3272,52 @@ export default function App({ user }) {
         onClassLogged={onClassLogged}
         detectedCity={detectedCity}
       />
-      <nav style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 420, background: C.navBg, backdropFilter: "blur(24px)", borderTop: `1px solid ${C.border}`, display: "flex", padding: "6px 0 18px", zIndex: 100 }}>
+
+      {/* ── Badge Celebration Modal ── */}
+      <BadgeCelebrationModal
+        badge={celebrationBadge}
+        onClose={() => setCelebrationBadge(null)}
+      />
+      <nav style={{
+        position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
+        width: "100%", maxWidth: 420, background: C.navBg,
+        backdropFilter: "blur(32px)", borderTop: `1px solid ${C.border}`,
+        display: "flex", padding: "8px 0 20px", zIndex: 100,
+      }}>
         {NAV.map(item => {
-          const isLog = item.id === "log";
+          const isLog    = item.id === "log";
           const isActive = tab === item.id && !selectedStudio && !selectedUser;
+          const NAV_ICONS = { home: "⌂", explore: "✦", passport: "◎", profile: "◉" };
           return (
-            <button key={item.id} onClick={() => handleSetTab(item.id)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, padding: "4px 0 0" }}>
-              {isLog
-                ? <div style={{ width: 48, height: 48, borderRadius: 14, background: C.accent, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 28, fontWeight: 700, marginTop: -22, boxShadow: `0 4px 24px rgba(232,113,74,0.5)` }}>+</div>
-                : <><span style={{ fontSize: 17, color: isActive ? C.accent : C.textTer, transition: "color 0.15s", lineHeight: 1 }}>{item.icon}</span><span style={{ fontSize: 9, fontWeight: 700, color: isActive ? C.accent : C.textTer, transition: "color 0.15s", letterSpacing: "0.05em" }}>{item.label}</span></>
-              }
+            <button key={item.id} onClick={() => handleSetTab(item.id)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "4px 0 0", position: "relative" }}>
+              {isLog ? (
+                <div style={{
+                  width: 52, height: 52, borderRadius: 16,
+                  background: C.gradientPrimary,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: "#fff", fontSize: 26, fontWeight: 700, marginTop: -24,
+                  boxShadow: C.shadowPurple,
+                }}>+</div>
+              ) : (
+                <>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 10,
+                    background: isActive ? C.purpleDim : "transparent",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    transition: "all 0.2s",
+                  }}>
+                    <span style={{ fontSize: 16, color: isActive ? C.accentPurple : C.textTer, transition: "color 0.15s", lineHeight: 1 }}>
+                      {NAV_ICONS[item.id] || item.icon}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: isActive ? C.accentPurple : C.textTer, transition: "color 0.15s", letterSpacing: "0.06em", fontFamily: FB }}>
+                    {item.label}
+                  </span>
+                  {isActive && (
+                    <div style={{ position: "absolute", bottom: -20, width: 20, height: 3, borderRadius: 100, background: C.gradientPrimary }} />
+                  )}
+                </>
+              )}
             </button>
           );
         })}

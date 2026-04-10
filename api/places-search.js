@@ -62,7 +62,7 @@ export default async function handler(req, res) {
         "rating", "user_ratings_total",
         "formatted_phone_number", "website",
         "opening_hours", "types", "url",
-        "business_status", "photos", "icon",
+        "business_status", "photos", "icon", "reviews",
       ].join(",")
 
       const url = `${BASE}/details/json?place_id=${encodeURIComponent(place_id)}&fields=${fields}&key=${apiKey}`
@@ -210,6 +210,14 @@ function mapDetail(r, placeId, photoUrls = []) {
           periods: r.opening_hours.periods || [],
         }
       : null,
+    googleReviews: (r.reviews || []).map(rv => ({
+      author_name: rv.author_name || "",
+      profile_photo_url: rv.profile_photo_url || null,
+      rating: rv.rating || 0,
+      text: rv.text || "",
+      time: rv.time || null,
+      relative_time_description: rv.relative_time_description || "",
+    })),
   }
 }
 
