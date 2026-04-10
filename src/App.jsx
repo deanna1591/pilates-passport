@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
+import { useAuth } from "./contexts/AuthContext";
 
 // ─── Feature flags from environment variables ─────────────────────────────────
 const FLAGS = {
@@ -2171,7 +2172,8 @@ export default function App() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [logPrefill, setLogPrefill] = useState(null);
   const [toast, setToast] = useState("");
-  const [user, setUser] = useState(null);
+  // Use AuthContext user directly — no duplicate state, no race condition
+  const { user } = useAuth();
   const [userProfile, setUserProfile] = useState(null);
   const [detectedCity, setDetectedCity] = useState(null);
   const [userCoords, setUserCoords] = useState(null); // { lat, lng } — user's real GPS position
@@ -2249,26 +2251,16 @@ export default function App() {
     return () => window.removeEventListener("pp_coords", handleManualCoords);
   }, [reverseGeocode]);
 
-  // Single auth listener — sets user immediately on mount and on auth changes
+  // Fetch profile when user changes (user comes from AuthContext)
   useEffect(() => {
-    // Check for existing session immediately on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u) fetchProfile(u);
-      setLogsLoading(false);
-    });
-
-    // Listen for sign in / sign out events
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u) fetchProfile(u);
-      else { setUserProfile(null); setLogs([]); setSavedStudios([]); }
-      setLogsLoading(false);
-    });
-    return () => subscription.unsubscribe();
-  }, [fetchProfile]);
+    if (user) {
+      fetchProfile(user);
+    } else {
+      setUserProfile(null);
+      setLogs([]);
+      setSavedStudios([]);
+    }
+  }, [user, fetchProfile]);
 
   // Fetch logs from Supabase
   useEffect(() => {
