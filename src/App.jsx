@@ -2249,21 +2249,23 @@ export default function App() {
     return () => window.removeEventListener("pp_coords", handleManualCoords);
   }, [reverseGeocode]);
 
-  // Get auth user from AuthContext (no duplicate listener needed)
-  // AppWithTheme passes the auth user directly — we just fetch the profile
+  // Single auth listener — sets user immediately on mount and on auth changes
   useEffect(() => {
-    // Get initial user from Supabase session (single source of truth)
+    // Check for existing session immediately on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       const u = session?.user ?? null;
-      if (u) { setUser(u); fetchProfile(u); }
+      setUser(u);
+      if (u) fetchProfile(u);
+      setLogsLoading(false);
     });
 
-    // React to auth state changes (sign in, sign out, token refresh)
+    // Listen for sign in / sign out events
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       const u = session?.user ?? null;
       setUser(u);
       if (u) fetchProfile(u);
       else { setUserProfile(null); setLogs([]); setSavedStudios([]); }
+      setLogsLoading(false);
     });
     return () => subscription.unsubscribe();
   }, [fetchProfile]);
@@ -2514,12 +2516,7 @@ export default function App() {
     <div style={{ width: "100%", maxWidth: 420, margin: "0 auto", minHeight: "100vh", background: C.bg, fontFamily: FB, position: "relative", display: "flex", flexDirection: "column" }}>
       <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}`}</style>
       <div ref={screenRef} style={{ flex: 1, overflowY: "auto", overflowX: "hidden", paddingBottom: 80 }}>
-        {logsLoading ? (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 400, gap: 16 }}>
-            <img src="/logo.png" alt="" style={{ width: 48, height: 48, objectFit: "contain", opacity: 0.6 }} />
-            <p style={{ fontSize: 13, color: C.textSec, fontFamily: FB }}>Loading your practice…</p>
-          </div>
-        ) : renderScreen()}
+        {renderScreen()}
       </div>
       <Toast msg={toast} onClose={() => setToast("")} />
       <nav style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 420, background: C.navBg, backdropFilter: "blur(24px)", borderTop: `1px solid ${C.border}`, display: "flex", padding: "6px 0 18px", zIndex: 100 }}>
