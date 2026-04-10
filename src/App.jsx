@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
-import { useAuth } from "./contexts/AuthContext";
 
 // ─── Feature flags from environment variables ─────────────────────────────────
 const FLAGS = {
@@ -2116,7 +2115,7 @@ function ProfileScreen({ logs, savedStudios, challenges, joinChallenge, leaveCha
 /* ══════════════════════════════════════════════════════════════════════════
    ROOT APP
 ══════════════════════════════════════════════════════════════════════════ */
-export default function App() {
+export default function App({ user }) {
   const { C } = useTheme();
   const [onboarded, setOnboarded] = useState(() => !!localStorage.getItem("pp_onboarded"));
   const [tab, setTab] = useState("home");
@@ -2172,8 +2171,7 @@ export default function App() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [logPrefill, setLogPrefill] = useState(null);
   const [toast, setToast] = useState("");
-  // Use AuthContext user directly — no duplicate state, no race condition
-  const { user } = useAuth();
+  // user is passed as prop from AppWithTheme → main.jsx (which has AuthContext)
   const [userProfile, setUserProfile] = useState(null);
   const [detectedCity, setDetectedCity] = useState(null);
   const [userCoords, setUserCoords] = useState(null); // { lat, lng } — user's real GPS position
@@ -2529,10 +2527,11 @@ export default function App() {
 }
 
 // Wrap App with ThemeProvider for export
-export function AppWithTheme() {
+// user prop passed from main.jsx which has access to AuthContext
+export function AppWithTheme({ user }) {
   return (
     <ThemeProvider>
-      <App />
+      <App user={user} />
     </ThemeProvider>
   );
 }

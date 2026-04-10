@@ -48,7 +48,7 @@ function Root() {
   }
 
   // Auth resolved — show correct screen immediately, no flicker
-  return user ? <AppWithTheme /> : <AuthScreen />
+  return user ? <AppWithTheme user={user} /> : <AuthScreen />
 }
 
 const styleEl = document.createElement('style')
