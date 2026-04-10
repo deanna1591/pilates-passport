@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.pilatespassport.app",
+      "sha256_cert_fingerprints": [
+        "19:85:BE:A9:7D:03:33:6B:93:48:20:E0:DB:19:AF:4D:BA:B6:40:42:90:6E:5C:FA:4F:31:3F:9E:89:44:30:BD"
+      ]
+    }
+  }
+]
