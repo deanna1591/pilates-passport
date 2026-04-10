@@ -4,31 +4,61 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/logo.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#0F0F0F" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0D0D12" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Pilates Passport" />
     <meta name="description" content="Pilates Passport — Log every class. Discover every studio. Remember every moment." />
     <meta property="og:title" content="Pilates Passport" />
     <meta property="og:description" content="Your Pilates practice, beautifully documented." />
     <title>Pilates Passport</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <style>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      html, body, #root { height: 100%; width: 100%; }
+
+      :root {
+        --sat: env(safe-area-inset-top, 0px);
+        --sab: env(safe-area-inset-bottom, 0px);
+        --sal: env(safe-area-inset-left, 0px);
+        --sar: env(safe-area-inset-right, 0px);
+      }
+
+      html {
+        height: -webkit-fill-available;
+        height: 100dvh;
+      }
+
       body {
-        background: #0F0F0F;
+        background: #0D0D12;
         font-family: 'Outfit', 'DM Sans', sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         overscroll-behavior: none;
+        /* Prevent rubber-band on iOS */
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        height: -webkit-fill-available;
       }
+
+      #root {
+        height: 100%;
+        height: 100dvh;
+        overflow: hidden;
+        position: relative;
+      }
+
       input, textarea, button, select { font-family: inherit; }
       ::-webkit-scrollbar { width: 0; background: transparent; }
       input[type="date"]::-webkit-calendar-picker-indicator,
       input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); }
       textarea::placeholder, input::placeholder { color: #5E5A54; }
       button { cursor: pointer; }
+      * { -webkit-tap-highlight-color: transparent; }
     </style>
   </head>
   <body>

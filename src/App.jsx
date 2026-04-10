@@ -152,6 +152,80 @@ const FD = "'Playfair Display',Georgia,serif";
 const FB = "'Outfit','DM Sans',sans-serif";
 
 /* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE SYSTEM
+   Covers: iPhone SE (320px) → iPhone 15 Pro Max (430px) → Android (360-412px)
+══════════════════════════════════════════════════════════════════════════ */
+function useResponsive() {
+  const [w, setW] = useState(() => Math.min(window.innerWidth, 420));
+  useEffect(() => {
+    const update = () => setW(Math.min(window.innerWidth, 420));
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+  // Breakpoints
+  const isXS = w < 360;  // iPhone SE 1st gen, small Androids
+  const isSM = w < 390;  // iPhone SE 3rd, iPhone 8, Pixel 4a
+  const isMD = w < 414;  // iPhone 14 Pro, Pixel 7
+  // Scale helpers — everything is a function of screen width
+  const s = (base) => Math.round(base * (w / 390));           // linear scale from 390 base
+  const fs = (base) => Math.max(Math.round(base * 0.82), Math.round(base * (w / 390))); // font scale (min 82%)
+  const pad = isXS ? 14 : isSM ? 16 : 20; // horizontal padding
+  const r  = { w, isXS, isSM, isMD, s, fs, pad };
+  return r;
+}
+
+/* Inject global CSS once: safe-area insets, smooth scroll, tap highlight */
+function GlobalStyles() {
+  useEffect(() => {
+    const id = "pp-global-styles";
+    if (document.getElementById(id)) return;
+    const el = document.createElement("style");
+    el.id = id;
+    el.textContent = `
+      /* Safe area insets for notched phones (iPhone X+, Android notches) */
+      :root {
+        --sat: env(safe-area-inset-top, 0px);
+        --sab: env(safe-area-inset-bottom, 0px);
+        --sal: env(safe-area-inset-left, 0px);
+        --sar: env(safe-area-inset-right, 0px);
+      }
+      /* Remove tap highlight on mobile */
+      * { -webkit-tap-highlight-color: transparent; }
+      /* Smooth momentum scrolling on iOS */
+      .pp-scroll { -webkit-overflow-scrolling: touch; overflow-y: auto; }
+      .pp-hscroll { -webkit-overflow-scrolling: touch; overflow-x: auto; scrollbar-width: none; }
+      .pp-hscroll::-webkit-scrollbar { display: none; }
+      /* Prevent text size adjustment on orientation change */
+      body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+      /* Nav safe area */
+      .pp-nav { padding-bottom: calc(10px + var(--sab)) !important; }
+      /* Screen top padding for status bar */
+      .pp-screen-top { padding-top: calc(52px + var(--sat)) !important; }
+      /* Modal safe area */
+      .pp-modal-bottom { padding-bottom: calc(20px + var(--sab)) !important; }
+      /* Prevent overscroll bounce on app container */
+      .pp-root { overscroll-behavior: none; height: 100dvh; overflow: hidden; }
+      /* Scrollable screen content */
+      .pp-content { overflow-y: auto; height: 100%; -webkit-overflow-scrolling: touch; }
+      /* Active press states for better mobile feedback */
+      button:active { opacity: 0.75; transform: scale(0.97); }
+      /* Clamp text to prevent overflow */
+      .pp-ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      /* Challenge cards scroll */
+      .pp-challenge-scroll { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
+      .pp-challenge-scroll > * { scroll-snap-align: start; }
+      /* Photo scroll */
+      .pp-photo-scroll { display: flex; gap: 8px; overflow-x: auto; }
+      .pp-photo-scroll::-webkit-scrollbar { display: none; }
+      /* Fix for 100vh on mobile browsers with chrome bar */
+      .pp-fullheight { min-height: 100dvh; min-height: -webkit-fill-available; }
+    `;
+    document.head.appendChild(el);
+  }, []);
+  return null;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
    DESIGN COMPONENTS
 ══════════════════════════════════════════════════════════════════════════ */
 function Stars({ n = 5, size = 13 }) {
@@ -550,6 +624,150 @@ function MapView({ studios, visitedIds, onSelect, userCoords }) {
 /* ══════════════════════════════════════════════════════════════════════════
    BADGE CELEBRATION MODAL — full-screen confetti + badge reveal
 ══════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════
+   CLASS DETAIL MODAL — tappable class card bottom sheet
+══════════════════════════════════════════════════════════════════════════ */
+function ClassDetailModal({ log, onClose, C }) {
+  useEffect(() => {
+    if (!log) return;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, [log]);
+  if (!log) return null;
+
+  const icon      = getStudioIcon({ name: log.studio || log.studio_name_manual, tags: [log.type || log.class_type] });
+  const dateLabel = log.date ? new Date(log.date + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }) : "—";
+  const typeColors = { Reformer: "#A06CD5", Mat: "#4ECDC4", Tower: "#C8E650", "Hot Pilates": "#FF6B6B", Private: "#FFE66D", default: "#FF6B6B" };
+  const tc        = typeColors[log.type || log.class_type] || typeColors.default;
+
+  return (
+    <>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.72)", backdropFilter: "blur(8px)", zIndex: 960 }} />
+      <div style={{
+        position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
+        width: "100%", maxWidth: 420,
+        background: C.surface, borderRadius: "28px 28px 0 0",
+        zIndex: 961, boxShadow: "0 -16px 60px rgba(0,0,0,0.5)",
+        maxHeight: "88dvh", overflowY: "auto", WebkitOverflowScrolling: "touch",
+        paddingBottom: "calc(20px + var(--sab, 0px))",
+        animation: "slideUpModal 0.28s cubic-bezier(0.34,1.1,0.64,1)",
+      }}>
+        <style>{`@keyframes slideUpModal { from { transform:translateX(-50%) translateY(100%); } to { transform:translateX(-50%) translateY(0); } }`}</style>
+        <div style={{ width: 40, height: 4, background: C.surfaceEl, borderRadius: 100, margin: "14px auto 0" }} />
+
+        {/* Hero banner */}
+        <div style={{ margin: "16px 16px 0", borderRadius: 20, background: `linear-gradient(135deg, ${tc}28, ${tc}10)`, border: `1px solid ${tc}38`, padding: "20px 18px", display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ width: 60, height: 60, borderRadius: 16, background: `${tc}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30, flexShrink: 0 }}>{icon}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: 10, fontWeight: 800, color: tc, textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 3px", fontFamily: FB }}>{log.type || log.class_type}</p>
+            <p style={{ fontSize: 17, fontWeight: 800, color: C.textPri, margin: "0 0 4px", fontFamily: FB, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{log.studio || log.studio_name_manual || "Unknown Studio"}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ color: "#FFB800", fontSize: 12 }}>{"★".repeat(log.rating || 0)}{"☆".repeat(5 - (log.rating || 0))}</span>
+              {(log.isTravel || log.is_travel_class) && <span style={{ fontSize: 9, background: "rgba(78,205,196,0.2)", color: "#4ECDC4", borderRadius: 6, padding: "2px 7px", fontWeight: 800, fontFamily: FB }}>✈ TRAVEL</span>}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ padding: "18px 16px" }}>
+          {/* Detail grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+            {[
+              { label: "Date",     value: dateLabel,                                              icon: "📅" },
+              { label: "Time",     value: log.time || log.start_time || "—",                      icon: "🕐" },
+              { label: "Duration", value: `${log.duration || log.duration_minutes || "—"} min`,   icon: "⏱️" },
+              { label: "Location", value: [log.city, log.country].filter(Boolean).join(", ") || "—", icon: "📍" },
+            ].map(({ label, value, icon: ic }) => (
+              <div key={label} style={{ background: C.surfaceHi, borderRadius: 14, padding: "12px 13px" }}>
+                <p style={{ fontSize: 9, color: C.textTer, margin: "0 0 3px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: FB }}>{ic} {label}</p>
+                <p style={{ fontSize: 13, fontWeight: 700, color: C.textPri, margin: 0, fontFamily: FB, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{value}</p>
+              </div>
+            ))}
+          </div>
+
+          {log.instructor && (
+            <div style={{ background: C.surfaceHi, borderRadius: 14, padding: "12px 13px", marginBottom: 10 }}>
+              <p style={{ fontSize: 9, color: C.textTer, margin: "0 0 3px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: FB }}>👤 Instructor</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: C.textPri, margin: 0, fontFamily: FB }}>{log.instructor}</p>
+            </div>
+          )}
+
+          {log.watchData && (
+            <div style={{ background: "rgba(91,175,122,0.1)", border: "1px solid rgba(91,175,122,0.25)", borderRadius: 14, padding: "12px 13px", marginBottom: 10, display: "flex", gap: 24 }}>
+              <div>
+                <p style={{ fontSize: 9, color: "#5BAF7A", margin: "0 0 2px", fontWeight: 800, fontFamily: FB }}>🔥 CALORIES</p>
+                <p style={{ fontSize: 20, fontWeight: 800, color: C.textPri, margin: 0, fontFamily: FB }}>{log.watchData.cal}</p>
+              </div>
+              {log.watchData.hr && <div>
+                <p style={{ fontSize: 9, color: "#5BAF7A", margin: "0 0 2px", fontWeight: 800, fontFamily: FB }}>❤️ AVG BPM</p>
+                <p style={{ fontSize: 20, fontWeight: 800, color: C.textPri, margin: 0, fontFamily: FB }}>{log.watchData.hr}</p>
+              </div>}
+            </div>
+          )}
+
+          {log.notes && (
+            <div style={{ background: C.surfaceHi, borderRadius: 14, padding: "13px", marginBottom: 10 }}>
+              <p style={{ fontSize: 9, color: C.textTer, margin: "0 0 6px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: FB }}>📝 Notes</p>
+              <p style={{ fontSize: 13, color: C.textSec, lineHeight: 1.6, margin: 0, fontFamily: FB, fontStyle: "italic" }}>"{log.notes}"</p>
+            </div>
+          )}
+
+          {log.photos?.length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <p style={{ fontSize: 9, color: C.textTer, margin: "0 0 8px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: FB }}>📸 Photos</p>
+              <div style={{ display: "flex", gap: 8, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+                {log.photos.map((url, i) => <img key={i} src={url} alt="" style={{ width: 80, height: 80, borderRadius: 12, objectFit: "cover", flexShrink: 0 }} onClick={() => window.open(url, "_blank")} onError={e => { e.target.style.display = "none"; }} />)}
+              </div>
+            </div>
+          )}
+
+          <button onClick={onClose} style={{ width: "100%", marginTop: 6, background: C.surfaceEl, border: "none", borderRadius: 16, padding: "14px", fontSize: 14, fontWeight: 700, color: C.textSec, cursor: "pointer", fontFamily: FB }}>Close</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   WEEKLY HEATMAP — 7-day logged class grid
+══════════════════════════════════════════════════════════════════════════ */
+function WeeklyHeatmap({ logs, C }) {
+  const today    = new Date();
+  const todayIdx = today.getDay();
+  const DAY_LABELS = ["S","M","T","W","T","F","S"];
+
+  const week = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() - todayIdx + i);
+    const dateStr = d.toISOString().slice(0, 10);
+    const count   = logs.filter(l => l.date === dateStr).length;
+    return { label: DAY_LABELS[i], dateStr, count, isToday: i === todayIdx, isFuture: d > today };
+  });
+
+  const maxCount = Math.max(...week.map(d => d.count), 1);
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <p style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.12em", color: C.textTer, textTransform: "uppercase", margin: "0 0 10px", fontFamily: FB }}>This week</p>
+      <div style={{ display: "flex", gap: 6 }}>
+        {week.map(({ label, count, isToday, isFuture, dateStr }) => {
+          const intensity = count === 0 ? 0 : Math.max(0.2, count / maxCount);
+          const bg        = count > 0 ? `rgba(160,108,213,${intensity})` : isFuture ? "transparent" : C.surfaceEl;
+          const border    = isToday ? `2px solid #A06CD5` : count > 0 ? "1px solid rgba(160,108,213,0.4)" : `1px solid ${C.border}`;
+          return (
+            <div key={dateStr} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
+              <div style={{ width: "100%", aspectRatio: "1", borderRadius: 10, background: bg, border, display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
+                {count > 0 && <span style={{ fontSize: 11, fontWeight: 800, color: isToday ? "#A06CD5" : "#fff", fontFamily: FB }}>{count}</span>}
+                {count === 0 && isToday && <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#A06CD5" }} />}
+              </div>
+              <span style={{ fontSize: 9, fontWeight: isToday ? 800 : 600, color: isToday ? "#A06CD5" : C.textTer, fontFamily: FB }}>{label}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function BadgeCelebrationModal({ badge, onClose }) {
   const { C } = useTheme();
   useEffect(() => {
@@ -968,7 +1186,7 @@ function Onboarding({ onComplete }) {
   ];
   const s = slides[step];
   return (
-    <div style={{ minHeight: "100vh", background: s.bg, display: "flex", flexDirection: "column", padding: "56px 28px 44px", transition: "background 0.4s" }}>
+    <div style={{ minHeight: "100dvh", background: s.bg, display: "flex", flexDirection: "column", padding: "calc(44px + var(--sat, 0px)) 28px 44px", transition: "background 0.4s" }}>
       <div style={{ display: "flex", gap: 6, marginBottom: "auto" }}>
         {slides.map((_, i) => <div key={i} style={{ height: 3, width: i === step ? 28 : 8, borderRadius: 100, background: i === step ? (step === 0 ? "#fff" : C.accent) : C.border, transition: "all 0.35s" }} />)}
       </div>
@@ -1167,94 +1385,109 @@ function NearbyStudios({ userCoords, onSelectStudio, setSelectedStudio, showToas
 ══════════════════════════════════════════════════════════════════════════ */
 function HomeScreen({ logs, setTab, setLogPrefill, challenges, joinChallenge, user, userProfile, detectedCity, userCoords, gpsDetected, gpsScanning, gpsDismiss, hkConnected, hkConnect, hkSyncing, showToast, setSelectedStudio, onQuickLog, calendarPending, onCalendarLog, onCalendarDismiss, onCalendarIgnore }) {
   const { C } = useTheme();
-  const stats = getStats(logs);
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-  const displayName = userProfile?.display_name || user?.user_metadata?.display_name || user?.email?.split("@")[0] || "there";
-  const allChallenges = challenges.slice(0, 5);
+  const R = useResponsive();
+  const stats           = getStats(logs);
+  const hour            = new Date().getHours();
+  const greeting        = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const displayName     = userProfile?.display_name || user?.user_metadata?.display_name || user?.email?.split("@")[0] || "there";
+  const allChallenges   = challenges.slice(0, 5);
   const [classFilter, setClassFilter] = useState("All");
-  const FILTERS = ["All", "Reformer", "Mat", "Tower", "Private", "Hot"];
-  const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-  const weeklyCount = logs.filter(l => l.date && new Date(l.date) >= weekStart).length;
-  const dailyQuote = getDailyQuote();
+  const [selectedLog,  setSelectedLog]  = useState(null);
+  const FILTERS         = ["All", "Reformer", "Mat", "Tower", "Private", "Hot"];
+  const weekStart       = new Date(); weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const weeklyCount     = logs.filter(l => l.date && new Date(l.date) >= weekStart).length;
+  const dailyQuote      = getDailyQuote();
+  const nextMilestone   = Math.ceil((stats.classes + 1) / 10) * 10;
+  const milestoneProgress = ((stats.classes % 10) / 10) * 100;
+  const filteredLogs    = classFilter === "All" ? logs : logs.filter(l => (l.type || l.class_type || "").toLowerCase().includes(classFilter.toLowerCase()));
 
   return (
-    <div style={{ background: C.bg, minHeight: "100vh" }}>
+    <div style={{ background: C.bg, minHeight: "100%" }}>
 
-      {/* Header */}
-      <div style={{ padding: "56px 22px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 44, height: 44, borderRadius: "50%", background: C.gradientPrimary, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, color: "#fff", flexShrink: 0, boxShadow: C.shadowPurple }}>
+      {/* ── Header with safe-area top ── */}
+      <div style={{ padding: `calc(44px + var(--sat, 0px)) ${R.pad}px 14px`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
+          <div style={{ width: 40, height: 40, borderRadius: "50%", background: C.gradientPrimary, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: "#fff", flexShrink: 0, boxShadow: "0 4px 14px rgba(160,108,213,0.4)" }}>
             {(displayName[0] || "P").toUpperCase()}
           </div>
-          <div>
-            <p style={{ fontSize: 12, color: C.textSec, margin: 0, fontFamily: FB }}>{greeting}</p>
-            <h1 style={{ fontFamily: FB, fontSize: 20, fontWeight: 800, color: C.textPri, margin: 0, lineHeight: 1.2 }}>{displayName}</h1>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ fontSize: 11, color: C.textSec, margin: 0, fontFamily: FB }}>{greeting}</p>
+            <h1 style={{ fontFamily: FB, fontSize: R.isSM ? 17 : 19, fontWeight: 800, color: C.textPri, margin: 0, lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</h1>
           </div>
         </div>
-        {onQuickLog && (
-          <button onClick={onQuickLog} style={{ width: 40, height: 40, borderRadius: "50%", background: C.surfaceEl, border: `1px solid ${C.border}`, cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>⚡</button>
-        )}
+        {/* Quick Log button — in header, not floating */}
+        <button onClick={onQuickLog || (() => setTab("log"))} style={{ background: C.gradientPrimary, color: "#fff", border: "none", borderRadius: 100, padding: R.isXS ? "8px 12px" : "9px 16px", fontSize: R.isXS ? 11 : 12, fontWeight: 800, cursor: "pointer", fontFamily: FB, display: "flex", alignItems: "center", gap: 5, boxShadow: "0 4px 14px rgba(160,108,213,0.4)", flexShrink: 0, whiteSpace: "nowrap" }}>
+          <span>⚡</span>{!R.isXS && " Quick Log"}
+        </button>
       </div>
 
-      {/* Hero card */}
-      <div style={{ margin: "0 16px 20px" }}>
-        <div style={{ background: C.gradientPurple, borderRadius: 24, padding: "22px 22px 20px", position: "relative", overflow: "hidden", boxShadow: C.shadowPurple }}>
-          <div style={{ position: "absolute", right: -30, top: -30, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,0.07)" }} />
-          <div style={{ position: "relative", zIndex: 1 }}>
-            <p style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.7)", margin: "0 0 4px", fontFamily: FB }}>Welcome back</p>
-            <h2 style={{ fontFamily: FB, fontSize: 22, fontWeight: 800, color: "#fff", margin: "0 0 16px", lineHeight: 1.2 }}>
-              {stats.classes > 0 ? `${stats.classes} classes logged` : "Start your journey"}
-            </h2>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 18 }}>
-              <StatChip label="Studios" value={stats.studios} icon="🏛️" color="teal" />
-              <StatChip label="Cities" value={stats.cities} icon="📍" color="yellow" />
-              <StatChip label="This week" value={weeklyCount} icon="🔥" color="coral" />
+      {/* ── Glassmorphism hero card ── */}
+      <div style={{ margin: `0 ${R.pad}px 18px` }}>
+        <div style={{ borderRadius: 24, background: "linear-gradient(135deg, rgba(160,108,213,0.92), rgba(255,107,107,0.88))", padding: R.isXS ? "18px 16px" : "22px 20px", position: "relative", overflow: "hidden", boxShadow: "0 16px 48px rgba(160,108,213,0.35)" }}>
+          {/* Glass overlay */}
+          <div style={{ position: "absolute", inset: 0, borderRadius: 24, background: "rgba(255,255,255,0.06)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.18)", pointerEvents: "none" }} />
+          {/* Decorative blobs */}
+          <div style={{ position: "absolute", right: -35, top: -35, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,0.07)" }} />
+          <div style={{ position: "absolute", left: -20, bottom: -25, width: 110, height: 110, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
+
+          <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: R.isXS ? 14 : 18 }}>
+            <ProgressRing progress={milestoneProgress} size={R.isXS ? 68 : 80} strokeWidth={5} color="rgba(255,255,255,0.9)">
+              {stats.classes}
+            </ProgressRing>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.72)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 3px", fontFamily: FB }}>
+                {stats.classes > 0 ? `${nextMilestone - stats.classes} to milestone` : "Start your journey"}
+              </p>
+              <p style={{ fontFamily: FB, fontSize: R.isXS ? 18 : 21, fontWeight: 800, color: "#fff", margin: "0 0 12px", lineHeight: 1.15 }}>
+                {stats.classes > 0 ? `${stats.classes} classes logged` : "Log your first class"}
+              </p>
+              <div style={{ display: "flex", gap: R.isXS ? 12 : 18 }}>
+                {[["Studios", stats.studios], ["Cities", stats.cities], ["Countries", stats.countries]].map(([l, v]) => (
+                  <div key={l}>
+                    <p style={{ fontSize: R.isXS ? 16 : 19, fontWeight: 800, color: "#fff", margin: 0, fontFamily: FB }}>{v}</p>
+                    <p style={{ fontSize: 9, color: "rgba(255,255,255,0.65)", margin: 0, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: FB }}>{l}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <button onClick={() => setTab("log")} style={{
-              background: "#fff", color: C.accentPurple, border: "none", borderRadius: 100,
-              padding: "11px 24px", fontSize: 14, fontWeight: 800, fontFamily: FB,
-              cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8,
-              boxShadow: "0 4px 14px rgba(0,0,0,0.2)",
-            }}>
-              Log a class <span>→</span>
-            </button>
           </div>
+          <button onClick={() => setTab("log")} style={{ position: "relative", zIndex: 1, marginTop: 16, background: "rgba(255,255,255,0.2)", backdropFilter: "blur(8px)", color: "#fff", border: "1px solid rgba(255,255,255,0.32)", borderRadius: 100, padding: "9px 20px", fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: FB, display: "inline-flex", alignItems: "center", gap: 8 }}>
+            Log a class <span>→</span>
+          </button>
         </div>
       </div>
 
-      {/* Class type chips */}
-      <div style={{ paddingLeft: 16, marginBottom: 20 }}>
-        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingRight: 16, paddingBottom: 2 }}>
+      {/* ── Class type filter chips ── */}
+      <div style={{ paddingLeft: R.pad, marginBottom: 16 }}>
+        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingRight: R.pad, paddingBottom: 4, WebkitOverflowScrolling: "touch" }}>
           {FILTERS.map((f, i) => (
-            <Chip key={f} label={f} active={classFilter === f} onClick={() => setClassFilter(f)}
-              color={["coral","purple","teal","lime","coral","purple"][i]} />
+            <Chip key={f} label={f} active={classFilter === f} onClick={() => setClassFilter(f)} color={["coral","purple","teal","lime","coral","purple"][i]} />
           ))}
         </div>
       </div>
 
-      <div style={{ padding: "0 16px" }}>
+      <div style={{ padding: `0 ${R.pad}px` }}>
 
-        {/* GPS scanning */}
+        {/* ── GPS scanning ── */}
         {gpsScanning && (
-          <div style={{ background: C.blueDim, border: `1px solid ${C.blue}30`, borderRadius: 18, padding: "14px 16px", marginBottom: 14, display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 12, background: C.blueDim, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>📡</div>
+          <div style={{ background: C.blueDim, border: `1px solid ${C.blue}30`, borderRadius: 16, padding: "13px 15px", marginBottom: 12, display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 11, background: C.blueDim, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>📡</div>
             <div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: C.blue, margin: "0 0 2px", fontFamily: FB }}>Scanning for nearby studios…</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: C.blue, margin: "0 0 1px", fontFamily: FB }}>Scanning for nearby studios…</p>
               <p style={{ fontSize: 11, color: C.textSec, margin: 0, fontFamily: FB }}>GPS active</p>
             </div>
           </div>
         )}
 
-        {/* GPS detected */}
+        {/* ── GPS detected ── */}
         {gpsDetected && !gpsScanning && (
-          <div style={{ background: C.gradientCard, border: "1px solid rgba(160,108,213,0.25)", borderRadius: 20, padding: "16px", marginBottom: 16 }}>
+          <div style={{ background: "rgba(255,255,255,0.04)", backdropFilter: "blur(20px)", border: "1px solid rgba(160,108,213,0.28)", borderRadius: 20, padding: "15px", marginBottom: 12, boxShadow: "0 4px 20px rgba(160,108,213,0.12)" }}>
             <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-              <div style={{ width: 42, height: 42, borderRadius: 14, background: C.purpleDim, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>📍</div>
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 10, fontWeight: 800, color: C.accentPurple, textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 3px", fontFamily: FB }}>Nearby studio</p>
-                <p style={{ fontSize: 15, fontWeight: 700, color: C.textPri, margin: "0 0 4px", fontFamily: FB }}>{gpsDetected.name}</p>
-                <p style={{ fontSize: 11, color: C.textSec, margin: "0 0 12px", fontFamily: FB }}>{gpsDetected.distance}</p>
+              <div style={{ width: 40, height: 40, borderRadius: 13, background: C.purpleDim, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19, flexShrink: 0 }}>📍</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 10, fontWeight: 800, color: C.accentPurple, textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 2px", fontFamily: FB }}>Nearby studio</p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: C.textPri, margin: "0 0 2px", fontFamily: FB, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{gpsDetected.name}</p>
+                <p style={{ fontSize: 11, color: C.textSec, margin: "0 0 11px", fontFamily: FB }}>{gpsDetected.distance}</p>
                 <div style={{ display: "flex", gap: 8 }}>
                   <Btn small gradient label="Log class →" onClick={() => { setLogPrefill({ studio: gpsDetected, studioId: gpsDetected.id, name: gpsDetected.name, city: gpsDetected.city, google_place_id: gpsDetected.google_place_id }); setTab("log"); }} style={{ flex: 1 }} />
                   <Btn small ghost label="Dismiss" onClick={gpsDismiss} style={{ flex: 1 }} />
@@ -1264,12 +1497,12 @@ function HomeScreen({ logs, setTab, setLogPrefill, challenges, joinChallenge, us
           </div>
         )}
 
-        {/* Apple Watch */}
+        {/* ── Apple Watch nudge ── */}
         {!hkConnected && (
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20, padding: "14px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 42, height: 42, borderRadius: 14, background: C.surfaceEl, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>⌚</div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: C.textPri, margin: "0 0 2px", fontFamily: FB }}>Connect Apple Watch</p>
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "12px 14px", marginBottom: 12, display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 11, background: C.surfaceEl, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>⌚</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: C.textPri, margin: "0 0 1px", fontFamily: FB }}>Connect Apple Watch</p>
               <p style={{ fontSize: 11, color: C.textSec, margin: 0, fontFamily: FB }}>Auto-import class data</p>
             </div>
             <Btn small label={hkSyncing ? "…" : "Connect"} onClick={hkConnect} disabled={hkSyncing} style={{ flexShrink: 0 }} />
@@ -1278,52 +1511,46 @@ function HomeScreen({ logs, setTab, setLogPrefill, challenges, joinChallenge, us
 
         <SmartClassPrompt logs={logs} setTab={setTab} setLogPrefill={setLogPrefill} C={C} />
 
-        {/* Daily motivational quote */}
-        <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 18, padding: "14px 16px", marginBottom: 16 }}>
-          <p style={{ fontSize: 10, fontWeight: 800, color: C.textTer, letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 6px", fontFamily: FB }}>Daily inspiration</p>
-          <p style={{ fontSize: 13, color: C.textPri, lineHeight: 1.6, margin: "0 0 4px", fontFamily: FB, fontStyle: "italic" }}>
-            "{dailyQuote.quote}"
-          </p>
+        {/* ── Weekly heatmap ── */}
+        <WeeklyHeatmap logs={logs} C={C} />
+
+        {/* ── Daily quote (glassmorphic card) ── */}
+        <div style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(12px)", border: `1px solid ${C.border}`, borderRadius: 16, padding: "13px 15px", marginBottom: 18 }}>
+          <p style={{ fontSize: 9, fontWeight: 800, color: C.textTer, letterSpacing: "0.14em", textTransform: "uppercase", margin: "0 0 5px", fontFamily: FB }}>Daily inspiration</p>
+          <p style={{ fontSize: R.isXS ? 12 : 13, color: C.textPri, lineHeight: 1.6, margin: "0 0 3px", fontFamily: FB, fontStyle: "italic" }}>"{dailyQuote.quote}"</p>
           <p style={{ fontSize: 10, color: C.textTer, margin: 0, fontFamily: FB }}>— {dailyQuote.author}</p>
         </div>
 
-        {/* Calendar event cards (detected upcoming / past classes) */}
+        {/* ── Calendar event cards ── */}
         {calendarPending?.length > 0 && calendarPending.map(event => (
-          <CalendarEventCard
-            key={event.id}
-            event={event}
-            onLog={onCalendarLog}
-            onDismiss={onCalendarDismiss}
-            onIgnore={onCalendarIgnore}
-            C={C}
-          />
+          <CalendarEventCard key={event.id} event={event} onLog={onCalendarLog} onDismiss={onCalendarDismiss} onIgnore={onCalendarIgnore} C={C} />
         ))}
 
-        {/* Challenges section */}
+        {/* ── Challenges horizontal scroll ── */}
         {allChallenges.length > 0 && (
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-              <h3 style={{ fontFamily: FB, fontSize: 18, fontWeight: 800, color: C.textPri, margin: 0 }}>Challenges</h3>
-              <button style={{ background: "none", border: "none", fontSize: 13, color: C.accentPurple, fontWeight: 700, cursor: "pointer", fontFamily: FB }}>See All</button>
+          <div style={{ marginBottom: 22 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <h3 style={{ fontFamily: FB, fontSize: 17, fontWeight: 800, color: C.textPri, margin: 0 }}>Challenges</h3>
+              <button style={{ background: "none", border: "none", fontSize: 12, color: C.accentPurple, fontWeight: 700, cursor: "pointer", fontFamily: FB }}>See All</button>
             </div>
-            <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 4, paddingLeft: 2 }}>
+            <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 6, paddingLeft: 2, WebkitOverflowScrolling: "touch" }}>
               {allChallenges.map((ch, i) => {
-                const prog = ch.progress || ch.userProgress?.current_progress || 0;
-                const target = ch.target || ch.target_value || 1;
-                const pct = Math.min(100, (prog / target) * 100);
+                const prog     = ch.progress || ch.userProgress?.current_progress || 0;
+                const target   = ch.target || ch.target_value || 1;
+                const pct      = Math.min(100, (prog / target) * 100);
                 const isJoined = ch.joined || ch.active;
-                const gradients = [C.gradientPurple, C.gradientTeal, C.gradientCoral, C.gradientLime, C.gradientPurple];
-                const shadows = [C.shadowPurple, C.shadowTeal, C.shadowAccent, C.shadow, C.shadowPurple];
+                const grads    = [C.gradientPurple, C.gradientTeal, C.gradientCoral, C.gradientLime, C.gradientPurple];
+                const shads    = [C.shadowPurple, C.shadowTeal, C.shadowAccent, C.shadow, C.shadowPurple];
                 return (
-                  <div key={ch.id} style={{ background: gradients[i % 5], borderRadius: 22, padding: "18px 16px", minWidth: 170, maxWidth: 190, flexShrink: 0, boxShadow: shadows[i % 5], position: "relative", overflow: "hidden" }}>
-                    <div style={{ position: "absolute", right: -20, top: -20, width: 90, height: 90, borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} />
-                    <span style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.8)", background: "rgba(0,0,0,0.15)", borderRadius: 6, padding: "2px 8px", fontFamily: FB, display: "inline-block", marginBottom: 8 }}>
+                  <div key={ch.id} style={{ background: grads[i%5], borderRadius: 20, padding: "15px 13px", minWidth: R.isXS ? 148 : 162, maxWidth: 182, flexShrink: 0, boxShadow: shads[i%5], position: "relative", overflow: "hidden" }}>
+                    <div style={{ position: "absolute", right: -16, top: -16, width: 75, height: 75, borderRadius: "50%", background: "rgba(255,255,255,0.08)" }} />
+                    <span style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.8)", background: "rgba(0,0,0,0.15)", borderRadius: 6, padding: "2px 7px", fontFamily: FB, display: "inline-block", marginBottom: 7 }}>
                       {ch.ends_at ? `Ends ${ch.ends_at.slice(5,10)}` : ch.ends || `${target}-day`}
                     </span>
-                    <p style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: "0 0 4px", fontFamily: FB, lineHeight: 1.25 }}>{ch.title}</p>
-                    {ch.participant_count > 0 && <p style={{ fontSize: 10, color: "rgba(255,255,255,0.75)", margin: "0 0 12px", fontFamily: FB }}>{ch.participant_count.toLocaleString()} users joined</p>}
+                    <p style={{ fontSize: R.isXS ? 13 : 14, fontWeight: 800, color: "#fff", margin: "0 0 4px", fontFamily: FB, lineHeight: 1.25 }}>{ch.title}</p>
+                    {ch.participant_count > 0 && <p style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", margin: "0 0 10px", fontFamily: FB }}>{ch.participant_count.toLocaleString()} joined</p>}
                     {isJoined && <div style={{ height: 3, background: "rgba(255,255,255,0.2)", borderRadius: 100, overflow: "hidden", marginBottom: 10 }}><div style={{ height: "100%", width: `${pct}%`, background: "#fff", borderRadius: 100 }} /></div>}
-                    <button onClick={async () => { try { await joinChallenge(ch.id); showToast("Challenge joined! 🎉"); } catch { showToast("Couldn't join"); }}} style={{ background: "rgba(255,255,255,0.22)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.4)", borderRadius: 100, padding: "7px 18px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: FB }}>
+                    <button onClick={async () => { try { await joinChallenge(ch.id); showToast("Challenge joined! 🎉"); } catch { showToast("Couldn't join"); }}} style={{ background: "rgba(255,255,255,0.2)", color: "#fff", border: "1px solid rgba(255,255,255,0.35)", borderRadius: 100, padding: "6px 15px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: FB }}>
                       {isJoined ? `${prog}/${target}` : "Join"}
                     </button>
                   </div>
@@ -1333,52 +1560,63 @@ function HomeScreen({ logs, setTab, setLogPrefill, challenges, joinChallenge, us
           </div>
         )}
 
-        {/* Quick stats */}
+        {/* ── Quick stats row ── */}
         {stats.classes > 0 && (
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 2 }}>
-              {stats.favType && <StatChip label="Fav class" value={stats.favType} icon="🪷" color="purple" />}
-              {stats.totalMin > 0 && <StatChip label="Total time" value={`${Math.round(stats.totalMin / 60)}h`} icon="⏱️" color="teal" />}
-              {stats.countries > 1 && <StatChip label="Countries" value={stats.countries} icon="🌍" color="lime" />}
-              {stats.travelCount > 0 && <StatChip label="Travel" value={`${stats.travelCount}`} icon="✈️" color="coral" />}
-            </div>
+          <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, marginBottom: 20, WebkitOverflowScrolling: "touch" }}>
+            {stats.favType  && <StatChip label="Fav class"  value={stats.favType}                       icon="🪷"  color="purple" />}
+            {stats.totalMin > 0 && <StatChip label="Total time" value={`${Math.round(stats.totalMin/60)}h`} icon="⏱️" color="teal"   />}
+            {stats.countries > 1 && <StatChip label="Countries" value={stats.countries}                 icon="🌍"  color="lime"   />}
+            {stats.travelCount > 0 && <StatChip label="Travel"  value={`${stats.travelCount}`}          icon="✈️"  color="coral"  />}
           </div>
         )}
 
-        {/* Recent classes */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <h3 style={{ fontFamily: FB, fontSize: 18, fontWeight: 800, color: C.textPri, margin: 0 }}>
-              Recent Classes {logs.length > 0 && <span style={{ fontSize: 14, color: C.textTer, fontWeight: 600 }}>({logs.length})</span>}
+        {/* ── Recent classes — tappable cards ── */}
+        <div style={{ marginBottom: 22 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <h3 style={{ fontFamily: FB, fontSize: 17, fontWeight: 800, color: C.textPri, margin: 0 }}>
+              Recent Classes {filteredLogs.length > 0 && <span style={{ fontSize: 13, color: C.textTer, fontWeight: 500 }}>({filteredLogs.length})</span>}
             </h3>
           </div>
+
           {logs.length === 0 ? (
-            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 22, padding: "40px 24px", textAlign: "center" }}>
-              <div style={{ fontSize: 56, marginBottom: 12 }}>🦋</div>
-              <p style={{ fontSize: 17, fontWeight: 800, color: C.textPri, margin: "0 0 8px", fontFamily: FB }}>Ready to start your Pilates journey?</p>
-              <p style={{ fontSize: 13, color: C.textSec, margin: "0 0 20px", lineHeight: 1.5, fontFamily: FB }}>Log your first class and start building your passport to studios around the world.</p>
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 20, padding: "36px 20px", textAlign: "center" }}>
+              <div style={{ fontSize: 50, marginBottom: 12 }}>🦋</div>
+              <p style={{ fontSize: R.isXS ? 15 : 16, fontWeight: 800, color: C.textPri, margin: "0 0 8px", fontFamily: FB }}>Ready to start your Pilates journey?</p>
+              <p style={{ fontSize: 13, color: C.textSec, margin: "0 0 18px", lineHeight: 1.5, fontFamily: FB }}>Log your first class and start building your passport to studios around the world.</p>
               <Btn gradient label="Log your first class →" onClick={() => setTab("log")} style={{ justifyContent: "center" }} />
             </div>
-          ) : logs.slice(0, 5).map((log, i) => {
-            const cols = ["coral","purple","teal","lime","coral"];
-            const col = cols[i % 5];
-            const typeBgs   = { coral: C.redDim,    purple: C.purpleDim, teal: C.tealDim,   lime: C.limeDim };
-            const typeTexts = { coral: C.accent,    purple: C.accentPurple, teal: C.accentTeal, lime: C.lime };
-            const icon = getStudioIcon({ name: log.studio || log.studio_name_manual, tags: [log.type || log.class_type] });
+          ) : filteredLogs.length === 0 ? (
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 16, padding: "24px 20px", textAlign: "center" }}>
+              <p style={{ fontSize: 28, marginBottom: 8 }}>🔍</p>
+              <p style={{ fontSize: 13, color: C.textSec, fontFamily: FB }}>No {classFilter} classes logged yet.</p>
+            </div>
+          ) : filteredLogs.slice(0, 6).map((log, i) => {
+            const cols     = ["coral","purple","teal","lime","coral","purple"];
+            const col      = cols[i % 6];
+            const typeBgs  = { coral: C.redDim, purple: C.purpleDim, teal: C.tealDim, lime: C.limeDim };
+            const typeTxts = { coral: C.accent, purple: C.accentPurple, teal: C.accentTeal, lime: C.lime };
+            const icon     = getStudioIcon({ name: log.studio || log.studio_name_manual, tags: [log.type || log.class_type] });
             return (
-              <div key={log.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 18, padding: "14px 16px", marginBottom: 10, display: "flex", gap: 14, alignItems: "center" }}>
-                <div style={{ width: 46, height: 46, borderRadius: 14, background: typeBgs[col], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{icon}</div>
+              <div
+                key={log.id}
+                onClick={() => setSelectedLog(log)}
+                style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 18, padding: "13px 15px", marginBottom: 10, display: "flex", gap: 13, alignItems: "center", cursor: "pointer", transition: "transform 0.15s, border-color 0.15s, box-shadow 0.15s", WebkitTapHighlightColor: "transparent" }}
+                onMouseEnter={e => { e.currentTarget.style.transform = "translateX(3px)"; e.currentTarget.style.borderColor = typeTxts[col] + "55"; e.currentTarget.style.boxShadow = `3px 0 0 0 ${typeTxts[col]}`; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = "translateX(0)"; e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = "none"; }}
+              >
+                <div style={{ width: 44, height: 44, borderRadius: 13, background: typeBgs[col], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21, flexShrink: 0 }}>{icon}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 14, fontWeight: 700, color: C.textPri, margin: "0 0 3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: FB }}>{log.studio || log.studio_name_manual}</p>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: typeTexts[col], background: typeBgs[col], borderRadius: 6, padding: "2px 8px", fontFamily: FB }}>{log.type || log.class_type}</span>
+                  <div style={{ display: "flex", gap: 7, alignItems: "center" }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: typeTxts[col], background: typeBgs[col], borderRadius: 6, padding: "2px 7px", fontFamily: FB }}>{log.type || log.class_type}</span>
                     <span style={{ fontSize: 11, color: C.textSec, fontFamily: FB }}>{(log.date || "").slice(5).replace("-","/")} · {log.duration || log.duration_minutes || 55}min</span>
                   </div>
-                  {log.watchData && <p style={{ fontSize: 10, color: C.green, margin: "3px 0 0", fontWeight: 700, fontFamily: FB }}>⌚ {log.watchData.cal} kcal</p>}
+                  <p style={{ fontSize: 10, color: C.textTer, margin: "2px 0 0", fontFamily: FB }}>Tap for details</p>
                 </div>
                 <div style={{ textAlign: "right", flexShrink: 0 }}>
                   <Stars n={log.rating} size={11} />
                   {(log.isTravel || log.is_travel_class) && <p style={{ fontSize: 9, color: C.accentTeal, fontWeight: 800, margin: "3px 0 0", fontFamily: FB }}>✈ TRAVEL</p>}
+                  <span style={{ fontSize: 16, color: C.textTer, display: "block", marginTop: 2 }}>›</span>
                 </div>
               </div>
             );
@@ -1388,9 +1626,14 @@ function HomeScreen({ logs, setTab, setLogPrefill, challenges, joinChallenge, us
         <NearbyStudios userCoords={userCoords} onSelectStudio={(s) => { if (s) { setSelectedStudio?.(s); } else { setTab("explore"); }}} showToast={showToast} C={C} />
         <div style={{ height: 110 }} />
       </div>
+
+      {/* ── Class Detail Modal ── */}
+      <ClassDetailModal log={selectedLog} onClose={() => setSelectedLog(null)} C={C} />
     </div>
   );
 }
+
+
 function ExploreScreen({ logs, savedStudios, savedStudiosCache, toggleSave, setSelectedStudio, communityUsers, setCommunityUsers, setSelectedUser, userCoords, detectedCity, showToast }) {
   const { C } = useTheme();
   const [search, setSearch] = useState("");
@@ -1561,7 +1804,7 @@ function ExploreScreen({ logs, savedStudios, savedStudiosCache, toggleSave, setS
 
   return (
     <div>
-      <div style={{ padding: "52px 20px 14px", background: C.bg, position: "sticky", top: 0, zIndex: 10, borderBottom: `1px solid ${C.border}` }}>
+      <div style={{ padding: "calc(44px + var(--sat, 0px)) 20px 14px", background: C.bg, position: "sticky", top: 0, zIndex: 10, borderBottom: `1px solid ${C.border}` }}>
         <h2 style={{ fontFamily: FD, fontSize: 28, fontWeight: 700, color: C.textPri, margin: "0 0 12px", letterSpacing: -0.5 }}>Explore</h2>
         <div style={{ position: "relative", marginBottom: 10 }}>
           <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: C.textTer, fontSize: 14, pointerEvents: "none" }}>✦</span>
@@ -1577,7 +1820,7 @@ function ExploreScreen({ logs, savedStudios, savedStudiosCache, toggleSave, setS
           {["studios", "community", "saved"].map(v => <Pill key={v} label={v.charAt(0).toUpperCase() + v.slice(1)} active={view === v} onClick={() => setView(v)} />)}
         </div>
         {view === "studios" && (
-          <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4 }}>
+          <div style={{ display: "flex", gap: 6, overflowX: "auto", WebkitOverflowScrolling: "touch", paddingBottom: 4 }}>
             {["All", "Reformer", "Mat", "Tower", "Luxury", "Beginner", "Advanced"].map(f => <Pill key={f} label={f} active={filter === f} onClick={() => setFilter(f)} />)}
           </div>
         )}
@@ -1715,7 +1958,7 @@ function ExploreScreen({ logs, savedStudios, savedStudiosCache, toggleSave, setS
       {view === "saved" && (
         <div style={{ padding: "10px 20px" }}>
           {savedStudios.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "56px 20px" }}>
+            <div style={{ textAlign: "center", padding: "40px 20px" }}>
               <p style={{ fontSize: 40, marginBottom: 10 }}>♡</p>
               <p style={{ fontSize: 15, fontWeight: 800, color: C.textPri, margin: "0 0 6px", fontFamily: FB }}>Save studios you'd love to visit</p>
               <p style={{ fontSize: 12, color: C.textSec, marginTop: 4, fontFamily: FB }}>Tap the ♡ heart on any studio to save it to your list.</p>
@@ -2551,7 +2794,7 @@ function LogScreen({ logs, setLogs, prefill, setPrefill, hkConnected, hkConnect,
   const di = { background: C.inputBg, border: `1px solid ${C.border}`, borderRadius: 12, padding: "11px 14px", fontSize: 13, color: C.textPri, fontFamily: FB, outline: "none", flex: 1 };
 
   return (
-    <div style={{ padding: "48px 20px 24px" }}>
+    <div style={{ padding: "calc(40px + var(--sat, 0px)) 20px 24px" }}>
       <h2 style={{ fontFamily: FD, fontSize: 28, fontWeight: 700, color: C.textPri, margin: "0 0 4px" }}>Log a class</h2>
       <p style={{ fontSize: 10, color: C.textSec, margin: "0 0 20px", fontWeight: 800, letterSpacing: "0.12em", fontFamily: FB }}>STEP {step} OF 3</p>
       <div style={{ display: "flex", gap: 8, marginBottom: 26 }}>
@@ -2746,7 +2989,7 @@ function PassportScreen({ logs }) {
 
   return (
     <div>
-      <div style={{ padding: "52px 20px 14px", background: C.bg, position: "sticky", top: 0, zIndex: 10, borderBottom: `1px solid ${C.border}` }}>
+      <div style={{ padding: "calc(44px + var(--sat, 0px)) 20px 14px", background: C.bg, position: "sticky", top: 0, zIndex: 10, borderBottom: `1px solid ${C.border}` }}>
         <h2 style={{ fontFamily: FD, fontSize: 28, fontWeight: 700, color: C.textPri, margin: "0 0 14px", letterSpacing: -0.5 }}>My Passport</h2>
         <div style={{ display: "flex", gap: 0, borderBottom: `1px solid ${C.border}` }}>
           {["map", "timeline", "stats", "badges"].map(v => <button key={v} onClick={() => setView(v)} style={{ flex: 1, background: "none", border: "none", borderBottom: `2px solid ${view === v ? C.accent : "transparent"}`, padding: "8px 4px", fontSize: 11, fontWeight: 700, color: view === v ? C.accent : C.textTer, cursor: "pointer", fontFamily: FB, textTransform: "capitalize", letterSpacing: "0.05em", transition: "all 0.15s" }}>{v}</button>)}
@@ -2768,7 +3011,7 @@ function PassportScreen({ logs }) {
         </div>}
 
         {view === "timeline" && <div>
-          <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 8, marginBottom: 12 }}>{cities.map(c => <Pill key={c} label={c} active={fc === c} onClick={() => setFC(c)} />)}</div>
+          <div style={{ display: "flex", gap: 6, overflowX: "auto", WebkitOverflowScrolling: "touch", paddingBottom: 8, marginBottom: 12 }}>{cities.map(c => <Pill key={c} label={c} active={fc === c} onClick={() => setFC(c)} />)}</div>
           {fl.length === 0 ? <div style={{ textAlign: "center", padding: "32px 20px" }}><p style={{ fontSize: 14, color: C.textSec }}>No classes yet. Go log one!</p></div> : fl.map((log, i) => (
             <div key={log.id} style={{ display: "flex", gap: 12, marginBottom: 12 }}>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
@@ -2863,7 +3106,7 @@ function ChallengesModal({ challenges, joinChallenge, leaveChallenge, onClose })
           <button onClick={onClose} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, width: 36, height: 36, fontSize: 18, color: C.textSec, cursor: "pointer" }}>✕</button>
         </div>
         <div style={{ padding: "10px 20px" }}>
-          <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 8, marginBottom: 12 }}>
+          <div style={{ display: "flex", gap: 6, overflowX: "auto", WebkitOverflowScrolling: "touch", paddingBottom: 8, marginBottom: 12 }}>
             {["All", "Consistency", "Discovery", "Memory", "Community"].map(f => <Pill key={f} label={f} active={cat === f} onClick={() => setCat(f)} />)}
           </div>
           {filtered.map(ch => (
@@ -3038,7 +3281,7 @@ function ProfileScreen({ logs, savedStudios, savedStudiosCache, challenges, join
       {showChallenges && <ChallengesModal challenges={challenges} joinChallenge={joinChallenge} leaveChallenge={leaveChallenge} onClose={() => setShowChallenges(false)} />}
       {showInsights && <InsightsModal logs={logs} onClose={() => setShowInsights(false)} />}
 
-      <div style={{ padding: "52px 20px 20px", background: `linear-gradient(180deg,${C.surface} 0%,${C.bg} 100%)` }}>
+      <div style={{ padding: "calc(44px + var(--sat, 0px)) 20px 20px", background: `linear-gradient(180deg,${C.surface} 0%,${C.bg} 100%)` }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
           {/* Profile photo — tap to upload */}
           <div
@@ -3123,7 +3366,7 @@ function ProfileScreen({ logs, savedStudios, savedStudiosCache, challenges, join
         </div>}
 
         {tab === "saved" && <div>
-          {savedStudios.length === 0 ? <div style={{ textAlign: "center", padding: "56px 20px" }}><p style={{ fontSize: 40, marginBottom: 10 }}>♡</p><p style={{ fontSize: 15, color: C.textSec, fontWeight: 600 }}>No saved studios yet.</p><p style={{ fontSize: 12, color: C.textTer, marginTop: 4 }}>Tap ♡ on any studio to save it.</p></div>
+          {savedStudios.length === 0 ? <div style={{ textAlign: "center", padding: "40px 20px" }}><p style={{ fontSize: 40, marginBottom: 10 }}>♡</p><p style={{ fontSize: 15, color: C.textSec, fontWeight: 600 }}>No saved studios yet.</p><p style={{ fontSize: 12, color: C.textTer, marginTop: 4 }}>Tap ♡ on any studio to save it.</p></div>
             : (savedStudiosCache || []).filter(s => savedStudios.includes(s.id)).map(s => (
                 <Card key={s.id} style={{ padding: "14px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -3749,7 +3992,7 @@ export default function App({ user }) {
 
   if (!onboarded) return (
     <ThemeProvider>
-      <div style={{ width: "100%", maxWidth: 420, margin: "0 auto", minHeight: "100vh" }}>
+      <div style={{ width: "100%", maxWidth: 420, margin: "0 auto", minHeight: "100dvh" }}>
         <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}`}</style>
         <Onboarding onComplete={completeOnboarding} />
       </div>
@@ -3772,8 +4015,13 @@ export default function App({ user }) {
   };
 
   return (
-    <div style={{ width: "100%", maxWidth: 420, margin: "0 auto", minHeight: "100vh", background: C.bg, fontFamily: FB, position: "relative", display: "flex", flexDirection: "column" }}>
-      <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}`}</style>
+    <div style={{ width: "100%", maxWidth: 420, margin: "0 auto", height: "100dvh", background: C.bg, fontFamily: FB, position: "relative", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <GlobalStyles />
+      <style>{`
+        @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes slideUp { from { transform:translateX(-50%) translateY(100%); } to { transform:translateX(-50%) translateY(0); } }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+      `}</style>
 
       {/* ── Offline banner ── */}
       {!isOnline && (
@@ -3781,7 +4029,8 @@ export default function App({ user }) {
           position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)",
           width: "100%", maxWidth: 420, background: "#2A2008",
           borderBottom: "1px solid rgba(200,160,60,0.4)",
-          padding: "8px 20px", zIndex: 200,
+          paddingTop: "calc(8px + var(--sat, 0px))", paddingBottom: 8,
+          paddingLeft: 20, paddingRight: 20, zIndex: 200,
           display: "flex", alignItems: "center", gap: 8,
         }}>
           <span style={{ fontSize: 13 }}>📵</span>
@@ -3791,7 +4040,7 @@ export default function App({ user }) {
         </div>
       )}
 
-      <div ref={screenRef} style={{ flex: 1, overflowY: "auto", overflowX: "hidden", paddingBottom: 80, paddingTop: isOnline ? 0 : 36 }}>
+      <div ref={screenRef} style={{ flex: 1, overflowY: "auto", overflowX: "hidden", WebkitOverflowScrolling: "touch", paddingBottom: "calc(80px + var(--sab, 0px))", paddingTop: isOnline ? 0 : 44 }}>
         {renderScreen()}
       </div>
       <Toast msg={toast} onClose={() => setToast("")} />
@@ -3814,37 +4063,54 @@ export default function App({ user }) {
       />
       <nav style={{
         position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)",
-        width: "100%", maxWidth: 420, background: C.navBg,
-        backdropFilter: "blur(32px)", borderTop: `1px solid ${C.border}`,
-        display: "flex", alignItems: "center", padding: "10px 8px 22px", zIndex: 100, gap: 0,
+        width: "100%", maxWidth: 420,
+        background: "rgba(13,13,18,0.94)",
+        backdropFilter: "blur(32px)",
+        WebkitBackdropFilter: "blur(32px)",
+        borderTop: `1px solid rgba(255,255,255,0.08)`,
+        display: "flex", alignItems: "flex-end",
+        paddingTop: 8, paddingLeft: 4, paddingRight: 4,
+        paddingBottom: "calc(8px + var(--sab, 0px))",
+        zIndex: 100,
       }}>
         {NAV.map(item => {
           const isLog    = item.id === "log";
           const isActive = tab === item.id && !selectedStudio && !selectedUser;
-          const NAV_LABELS = { home: "Home", explore: "Explore", log: "+", passport: "Passport", profile: "Profile" };
-          const NAV_ICONS  = { home: "🏠", explore: "🔍", passport: "📖", profile: "👤" };
+          const ICONS    = { home: "⌂", explore: "✦", passport: "◎", profile: "◉" };
+          const LABELS   = { home: "Home", explore: "Explore", passport: "Passport", profile: "Profile" };
           return (
-            <button key={item.id} onClick={() => handleSetTab(item.id)} style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: 0 }}>
+            <button
+              key={item.id}
+              onClick={() => handleSetTab(item.id)}
+              style={{ flex: 1, background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", padding: "0 2px", position: "relative", minWidth: 0 }}
+            >
               {isLog ? (
                 <div style={{
-                  width: 54, height: 54, borderRadius: "50%",
+                  width: 50, height: 50, borderRadius: 16,
                   background: C.gradientPrimary,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  color: "#fff", fontSize: 28, fontWeight: 700, marginTop: -28,
-                  boxShadow: C.shadowPurple,
+                  color: "#fff", fontSize: 24, fontWeight: 700,
+                  marginTop: -18, marginBottom: 2,
+                  boxShadow: "0 6px 20px rgba(160,108,213,0.45)",
+                  flexShrink: 0,
                 }}>+</div>
-              ) : isActive ? (
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                  <div style={{ background: C.gradientPrimary, borderRadius: 100, padding: "6px 18px", display: "flex", alignItems: "center", gap: 6, boxShadow: C.shadowPurple }}>
-                    <span style={{ fontSize: 14 }}>{NAV_ICONS[item.id]}</span>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: "#fff", fontFamily: FB }}>{NAV_LABELS[item.id]}</span>
-                  </div>
-                </div>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, paddingTop: 4 }}>
-                  <span style={{ fontSize: 18, lineHeight: 1 }}>{NAV_ICONS[item.id]}</span>
-                  <span style={{ fontSize: 9, fontWeight: 600, color: C.textTer, fontFamily: FB, letterSpacing: "0.04em" }}>{NAV_LABELS[item.id]}</span>
-                </div>
+                <>
+                  <div style={{
+                    width: 46, height: 30, borderRadius: 10,
+                    background: isActive ? "rgba(160,108,213,0.18)" : "transparent",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    marginBottom: 3, transition: "background 0.18s",
+                  }}>
+                    <span style={{ fontSize: 17, color: isActive ? "#A06CD5" : C.textTer, transition: "color 0.18s", lineHeight: 1 }}>
+                      {ICONS[item.id]}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: 9, fontWeight: isActive ? 800 : 600, color: isActive ? "#A06CD5" : C.textTer, fontFamily: FB, letterSpacing: "0.03em", transition: "color 0.18s" }}>
+                    {LABELS[item.id]}
+                  </span>
+                  {isActive && <div style={{ position: "absolute", bottom: -4, width: 4, height: 4, borderRadius: "50%", background: "#A06CD5" }} />}
+                </>
               )}
             </button>
           );
